@@ -1,0 +1,36 @@
+<?php defined('COREPATH') or exit('No direct script access allowed'); ?>
+
+ERROR - 2016-07-15 18:02:16 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:16 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:21 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:21 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:24 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:24 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:52 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:02:52 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:05 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:05 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:27 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:27 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:29 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:29 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:30 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:30 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:30 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:30 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:30 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:03:31 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:04:22 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:04:22 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:05:38 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:08:39 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:09:58 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:10:40 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:10:57 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135
+ERROR - 2016-07-15 18:11:39 --> Error - No MySQLi Connection in /var/www/html/gts/cos_cnschool1/fuel/core/classes/database/mysqli/connection.php on line 135

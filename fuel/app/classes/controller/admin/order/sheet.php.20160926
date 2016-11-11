@@ -1,0 +1,759 @@
+<?php
+
+class Controller_Admin_Order_Sheet extends Controller_Template {
+
+	public $template = 'template/template';
+
+	public function before() {
+		parent::before();
+		if (!Auth::has_access('order.list')) {
+			Response::redirect('base/timeout');
+		}
+	}
+
+	public function action_index() {
+		$order_id = Input::get('id', '');
+
+		if(Utility::is_empty($order_id)) {
+			Response::redirect('base/timeout');
+		}
+		$order = Model_Order_Jnl::select_primary_admin($order_id);
+		if(empty($order)) {
+			Response::redirect('base/timeout');
+		}
+		$order_detail = Model_Order_Detail::get_order_list_admin($order_id);
+		if(empty($order_detail)) {
+			Response::redirect('base/timeout');
+		}
+
+		$max_detail_count = Utility::get_order_sheet_detail_count($order->user_id);
+		for($i = count($order_detail); $i < $max_detail_count; $i++) {
+			$order_detail[] = Model_Order_Detail::forge();
+		}
+
+		$currency = Model_Currency_Rate::select_primary();
+		$user = Model_Users::select_primary($order->user_id);
+		$commission = Controller_Order_Sheet::get_commission($order->order_kbn, $user->member_rank);
+		$payer = Model_Payers::select_primary($user->payers_id);
+		if(!$payer) {
+			$payer = Model_Payers::forge();
+			$payer->payer_commission = 0;
+		}
+
+		$send_jnl_list        = Model_Send_Jnl::select_by_order_id($order->id, $order->user_id);
+		$total_delivery_fee   = Model_Send_Jnl::total_delivery_fee_by_order($order_id, $order->user_id);
+		$message_unread_count = Model_Order_Message::select_unread_count($order->id);
+		$order_info_format    = Controller_Admin_Order_Sheet::get_format_order_info(Model_Order_Info::select_primary_admin_by_order_id($order->id));
+		$order_attachs        = Model_Order_Attach::select_primary_admin_by_order_id($order->id);
+
+		$this->template->title = '注文シート';
+		$this->template->content = View::forge('admin/order/sheet');
+		$this->template->content->set_safe('order', $order);
+		$this->template->content->set_safe('order_detail', $order_detail);
+		$this->template->content->set_safe('currency', $currency);
+		$this->template->content->set_safe('user', $user);
+		$this->template->content->set_safe('commission', $commission);
+		$this->template->content->set_safe('payer', $payer);
+		$this->template->content->set_safe('send_jnl_list', $send_jnl_list);
+		$this->template->content->set_safe('total_delivery_fee', $total_delivery_fee);
+		$this->template->content->set_safe('message_unread_count', $message_unread_count);
+		$this->template->content->set_safe('order_info_format', $order_info_format);
+		$this->template->content->set_safe('order_attachs', $order_attachs);
+	}
+
+	public static function get_format_order_info($order_info_list) {
+		$format_list = array();
+		$left_list   = array();
+		$right_list  = array();
+		$before_parent_kbn = null;
+		foreach ($order_info_list as $order_info) {
+			$parent_kbn = Config::get('constant.order_info_status.relation.' . $order_info->info_kbn);
+			if($before_parent_kbn != null && $parent_kbn != $before_parent_kbn) {
+				array_push($format_list, array(
+					'info_kbn' => $before_parent_kbn,
+					'list' => array($left_list, $right_list))
+				);
+				$left_list   = array();
+				$right_list  = array();
+			}
+			if($order_info->info_kbn == $parent_kbn) {
+				array_push($left_list, $order_info);
+			} else {
+				array_push($right_list, $order_info);
+			}
+			$before_parent_kbn = $parent_kbn;
+		}
+		if(count($left_list) > 0 || count($right_list) > 0) {
+			array_push($format_list, array(
+				'info_kbn' => $before_parent_kbn,
+				'list' => array($left_list, $right_list))
+			);
+		}
+		return $format_list;
+	}
+
+	private function validate_sheet() {
+		$validation = Validation::forge();
+		$validation->add_callable('MyValidation');
+
+		$validation->add('order_status', '注文ステータス')
+			->add_rule('required')
+			->add_rule('numeric_between', 
+				Config::get('constant.order_status.kbn.cancel'),
+				Config::get('constant.order_status.kbn.temporary'));
+		$validation->add('order_id', '注文id')
+			->add_rule('required');
+
+		$order_kbn = Input::post('order_kbn');
+		$details = Input::post('details');
+		if($details) {
+			foreach ($details as $form_id => $detail) {
+				$is_detail_exist = !Utility::is_empty($detail['detail_id'])
+										|| (!Utility::is_empty($detail['request_amount'])
+												&& Utility::is_empty($detail['delete_check']));
+				if(!$is_detail_exist) {
+					continue;
+				}
+				if(!Utility::is_empty($detail['delete_check'])) {
+					Utility::add_detail_validation($validation, 'details', $form_id, 'detail_id', '明細')
+						->add_rule('send_detail_exists', 'send_detail', 'order_detail_id', $detail['detail_id'])
+						->add_rule('order_sheet_delete_check', $detail['detail_id']);
+				} else {
+					$rule = Utility::add_detail_validation($validation, 'details', $form_id, 'url1', Utility::get_constant_name2('order_sheet_label', $order_kbn, 'url1'))
+						->add_rule('valid_url')
+						->add_rule('max_length', 500);
+					if($order_kbn == Config::get('constant.order_kbn.kbn.normal')) {
+						$rule->add_rule('required');
+					}
+
+					Utility::add_detail_validation($validation, 'details', $form_id, 'url2', Utility::get_constant_name2('order_sheet_label', $order_kbn, 'url2'))
+						->add_rule('valid_url')
+						->add_rule('max_length', 500);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'url3', Utility::get_constant_name2('order_sheet_label', $order_kbn, 'url3'))
+						->add_rule('valid_url')
+						->add_rule('max_length', 500);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'image_id', '画像')
+						->add_rule('required')
+						->add_rule('valid_string', array('numeric'));
+					Utility::add_detail_validation($validation, 'details', $form_id, 'image_id2', '画像(補足)')
+						->add_rule('valid_string', array('numeric'));
+					Utility::add_detail_validation($validation, 'details', $form_id, 'valiation', 'バリエーション')
+						->add_rule('max_length', 150);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'demand', '要望')
+						->add_rule('max_length', 150);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'request_amount', '希望数量')
+						->add_rule('required')
+						->add_rule('numeric_between', 1, 10000)
+						->add_rule('valid_string', array('numeric'));
+					Utility::add_detail_validation($validation, 'details', $form_id, 'real_amount', '実数量')
+						->add_rule('numeric_between', 0, 10000)
+						->add_rule('valid_string', array('numeric'));
+					Utility::add_detail_validation($validation, 'details', $form_id, 'china_price', '単価（元）')
+						->add_rule('required')
+						->add_rule('match_pattern', '/^\d{1,8}(\.\d{1,2})?$/');
+					Utility::add_detail_validation($validation, 'details', $form_id, 'national_delivery_fee', '国内送料（元）')
+						->add_rule('required')
+						->add_rule('match_pattern', '/^\d{1,8}(\.\d{1,2})?$/');
+					Utility::add_detail_validation($validation, 'details', $form_id, 'send_directly_box', '直送箱数')
+						->add_rule('required')
+						->add_rule('numeric_between', 0, 1000)
+						->add_rule('valid_string', array('numeric'));
+					Utility::add_detail_validation($validation, 'details', $form_id, 'order_date', Utility::get_constant_name2('order_sheet_label', $order_kbn, 'order_date'))
+						->add_rule('match_pattern', '/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/');
+					Utility::add_detail_validation($validation, 'details', $form_id, 'receive_date', Utility::get_constant_name2('order_sheet_label', $order_kbn, 'receive_date'))
+						->add_rule('match_pattern', '/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/');
+					Utility::add_detail_validation($validation, 'details', $form_id, 'send_company', '国内配送会社')
+						->add_rule('max_length', 50);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'send_status', '国内配送状況')
+						->add_rule('exact_length', 1);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'send_no', '国内配送番号')
+						->add_rule('max_length', 20);
+					Utility::add_detail_validation($validation, 'details', $form_id, 'detail_status', '明細ステータス')
+						->add_rule('required');
+					Utility::add_detail_validation($validation, 'details', $form_id, 'admin_message', '管理者メッセージ')
+						->add_rule('max_length', 150);
+
+					Utility::add_detail_validation($validation, 'details', $form_id, 'admin_message2', '管理者メッセージ２')
+						->add_rule('max_length', 150);						
+					for($idx = 1; $idx <= 7; $idx++) {
+						Controller_Admin_Order_Sheet::option_validate($validation, $form_id, $detail, $idx);
+					}
+				}
+			}
+		}
+		$validation->run();
+		return $validation;
+	}
+
+	public static function option_validate($validation, $form_id, $detail, $idx) {
+		if(!Utility::is_empty($detail['other_option' . $idx . '_label'])
+			|| !Utility::is_empty($detail['other_option' . $idx . '_amount'])
+			|| !Utility::is_empty($detail['other_option' . $idx . '_unit_price'])) {
+			Utility::add_detail_validation($validation, 'details', $form_id, 'other_option' . $idx . '_label', 'オプション' . $idx . '（項目）')
+				->add_rule('required')
+				->add_rule('max_length', 20);
+			Utility::add_detail_validation($validation, 'details', $form_id, 'other_option' . $idx . '_amount', 'オプション' . $idx . '（数量）')
+				->add_rule('required')
+				->add_rule('numeric_between', 1, 10000)
+				->add_rule('valid_string', array('numeric'));
+			Utility::add_detail_validation($validation, 'details', $form_id, 'other_option' . $idx . '_unit_price', 'オプション' . $idx . '（単価）')
+				->add_rule('required')
+				->add_rule('match_pattern', '/^\d{1,5}(\.\d{1,2})?$/');
+		}
+	}
+
+	private function is_detail_status_search($detail) {
+		$status = $detail->detail_status;
+		$status_list = Config::get('constant.order_status.kbn');
+		return $status == $status_list['search']
+			|| $status == $status_list['exchange']
+			|| $status == $status_list['backordering']
+			|| $status == $status_list['arrival']
+			|| $status == $status_list['preparation']
+			|| $status == $status_list['finish'];
+	}
+
+	private function is_detail_status_search_oem($detail) {
+		$status = $detail->detail_status;
+		$status_list = Config::get('constant.order_status.kbn');
+		return $status == $status_list['temporary']
+			|| $this->is_detail_status_search($detail);
+	}
+
+	private function get_detail_amount($detail) {
+		if($this->is_detail_status_search($detail)) {
+			if(!Utility::is_empty($detail->real_amount)) {
+				return $detail->real_amount;
+			} else {
+				return 0;
+			}
+		} else {
+			if($detail->detail_status == Config::get('constant.order_status.kbn.cancel')) {
+				return 0;
+			} else {
+				return $detail->request_amount;
+			}
+		}
+	}
+
+	public function action_update() {
+		$order_id = Input::post('order_id');
+		$details  = Input::post('details');
+
+		$validation = $this->validate_sheet();
+		$errors = $validation->error();
+		if (!empty($errors)) {
+			return json_encode(array(
+				'error' => $validation->show_errors(),
+				'info' => ''
+			));
+		}
+
+		$order_status = Input::post('order_status');
+		$currency = Model_Currency_Rate::select_primary();
+
+		try {
+			DB::start_transaction();
+
+			$order = Model_Order_Jnl::select_for_update_primary($order_id);
+			if(!$order) {
+				throw new FuelException('注文が存在しません。');
+			}
+			if($order->order_status == Config::get('constant.order_status.kbn.draft')
+				|| $order->order_status == Config::get('constant.order_status.kbn.finish')) {
+				throw new FuelException('更新できない注文ステータスです。');
+			}
+
+			$user = Model_Users::select_primary($order->user_id);
+
+			$commission = Controller_Order_Sheet::get_commission($order->order_kbn, $user->member_rank);
+			if($commission->rank == Config::get('constant.member_rank.kbn.none')) {
+				throw new FuelException('会員ランクが設定されていません。');
+			}
+
+			if(Input::post('order_updated_at') != $order->updated_at) {
+				throw new FuelException('他ユーザに更新されています。もう一度入力してください。');
+			}
+
+			$international_delivery_fee = 0;
+			$sum_product_price          = 0;
+			$sum_national_delivery_fee  = 0;
+			$min_detail_status          = 1000;
+			$sum_send_directly_box      = 0;
+
+			$sum_detail_amount          = 0;
+			$sum_fba_barcode_price      = 0;
+			$sum_opp_packing_price      = 0;
+			$sum_other_option_price     = 0;
+
+			$update_detail_entry = array();
+			$delete_detail_entry = array();
+			$detail_no = 0;
+
+			foreach ($details as $detail) {
+				if(!Utility::is_empty($detail['detail_id'])) {
+					$detail_entry = Model_Order_Detail::select_primary($order->user_id, $detail['detail_id']);
+					if(!Utility::is_empty($detail['delete_check'])) {
+						$delete_detail_entry[] = $detail_entry;
+						continue;
+					}
+				} else {
+					$is_detail_exist = !Utility::is_empty($detail['request_amount'])
+											&& Utility::is_empty($detail['delete_check']);
+					if(!$is_detail_exist) {
+						continue;
+					}
+					$detail_entry = Model_Order_Detail::forge();
+					$detail_entry->user_id = $order->user_id;
+					$detail_entry->sku     = '';
+				}
+				$detail_entry->detail_no       = $detail_no++;
+				$detail_entry->supplier_url1   = $detail['url1'];
+				$detail_entry->supplier_url2   = $detail['url2'];
+				$detail_entry->supplier_url3   = $detail['url3'];
+				$detail_entry->image_id        = $detail['image_id'];
+				$detail_entry->image_id2       = $detail['image_id2'];
+				$detail_entry->valiation       = $detail['valiation'];
+				$detail_entry->demand          = $detail['demand'];
+				$detail_entry->request_amount  = $detail['request_amount'];
+				$detail_entry->real_amount     = $detail['real_amount'];
+				$detail_entry->china_price     = $detail['china_price'];
+				$detail_entry->fba_barcode_flg = $detail['fba_barcode_flg'];
+				$detail_entry->opp_packing_flg = $detail['opp_packing_flg'];
+				$detail_entry->order_date      = $detail['order_date'];
+				$detail_entry->receive_date    = $detail['receive_date'];
+				$detail_entry->send_company    = $detail['send_company'];
+				$detail_entry->send_status     = $detail['send_status'];
+				$detail_entry->send_no         = $detail['send_no'];
+				$detail_entry->admin_message   = $detail['admin_message'];
+				
+				$detail_entry->admin_message2   = $detail['admin_message2'];
+				
+				$detail_entry->other_option1_label      = $detail['other_option1_label'];
+				$detail_entry->other_option1_amount     = $detail['other_option1_amount'];
+				$detail_entry->other_option1_unit_price = $detail['other_option1_unit_price'];
+				$detail_entry->other_option2_label      = $detail['other_option2_label'];
+				$detail_entry->other_option2_amount     = $detail['other_option2_amount'];
+				$detail_entry->other_option2_unit_price = $detail['other_option2_unit_price'];
+				$detail_entry->other_option3_label      = $detail['other_option3_label'];
+				$detail_entry->other_option3_amount     = $detail['other_option3_amount'];
+				$detail_entry->other_option3_unit_price = $detail['other_option3_unit_price'];
+				$detail_entry->other_option4_label      = $detail['other_option4_label'];
+				$detail_entry->other_option4_amount     = $detail['other_option4_amount'];
+				$detail_entry->other_option4_unit_price = $detail['other_option4_unit_price'];
+				$detail_entry->other_option5_label      = $detail['other_option5_label'];
+				$detail_entry->other_option5_amount     = $detail['other_option5_amount'];
+				$detail_entry->other_option5_unit_price = $detail['other_option5_unit_price'];
+				$detail_entry->other_option6_label      = $detail['other_option6_label'];
+				$detail_entry->other_option6_amount     = $detail['other_option6_amount'];
+				$detail_entry->other_option6_unit_price = $detail['other_option6_unit_price'];
+				$detail_entry->other_option7_label      = $detail['other_option7_label'];
+				$detail_entry->other_option7_amount     = $detail['other_option7_amount'];
+				$detail_entry->other_option7_unit_price = $detail['other_option7_unit_price'];
+
+				if($order->order_kbn == Config::get('constant.order_kbn.kbn.oem')) {
+					if($detail_entry->detail_status == Config::get('constant.order_status.kbn.temporary')) { // 見積依頼からの差し戻し対応
+						$detail_entry->detail_status  = $order_status;
+					} else {
+						$detail_entry->detail_status  = $detail['detail_status'];
+					}
+				} else {
+					$detail_entry->detail_status  = $detail['detail_status'];
+				}
+
+				$send_directly_box      = $detail['send_directly_box'];
+				$sum_send_directly_box += $send_directly_box;
+				$detail_entry->send_directly_box = $send_directly_box;
+
+				if($detail_entry->detail_status == Config::get('constant.order_status.kbn.cancel')) {
+					$detail_entry->japan_price = 0;
+					$detail_entry->national_delivery_fee = 0;
+				} else {
+					$detail_entry->japan_price = round($detail_entry->china_price * $order->cny_jpy_rate, 3);
+					if($this->is_detail_status_search_oem($detail_entry)) {
+						$detail_entry->national_delivery_fee = $detail['national_delivery_fee'];
+					} else {
+						$detail_entry->national_delivery_fee = Config::get('constant.national_delivery_fee');
+					}
+					$min_detail_status = min($min_detail_status, (int)$detail_entry->detail_status);
+				}
+
+				$detail_amount = $this->get_detail_amount($detail_entry);
+				$product_price = $detail_amount * $detail_entry->japan_price;
+
+				$sum_detail_amount += $detail_amount;
+				if($detail_entry->fba_barcode_flg == Config::get('constant.fba_barcode_flg.kbn.yes')) {
+					$sum_fba_barcode_price += $detail_amount * Config::get('constant.unit_fba_barcode_price');
+				}
+				if($detail_entry->opp_packing_flg == Config::get('constant.opp_packing_flg.kbn.yes')) {
+					$sum_opp_packing_price += $detail_amount * Config::get('constant.unit_opp_packing_price');
+				}
+				if(!Utility::is_empty($detail_entry->other_option1_label)) {
+					$sum_other_option_price += round($detail_entry->other_option1_amount * $detail_entry->other_option1_unit_price);
+				}
+				if(!Utility::is_empty($detail_entry->other_option2_label)) {
+					$sum_other_option_price += round($detail_entry->other_option2_amount * $detail_entry->other_option2_unit_price);
+				}
+				if(!Utility::is_empty($detail_entry->other_option3_label)) {
+					$sum_other_option_price += round($detail_entry->other_option3_amount * $detail_entry->other_option3_unit_price);
+				}
+				if(!Utility::is_empty($detail_entry->other_option4_label)) {
+					$sum_other_option_price += round($detail_entry->other_option4_amount * $detail_entry->other_option4_unit_price);
+				}
+				if(!Utility::is_empty($detail_entry->other_option5_label)) {
+					$sum_other_option_price += round($detail_entry->other_option5_amount * $detail_entry->other_option5_unit_price);
+				}
+				if(!Utility::is_empty($detail_entry->other_option6_label)) {
+					$sum_other_option_price += round($detail_entry->other_option6_amount * $detail_entry->other_option6_unit_price);
+				}
+				if(!Utility::is_empty($detail_entry->other_option7_label)) {
+					$sum_other_option_price += round($detail_entry->other_option7_amount * $detail_entry->other_option7_unit_price);
+				}
+
+				$detail_entry->product_price = round($product_price);
+				$detail_entry->commission    = round($detail_entry->product_price
+													* ($commission->commission * 0.01));
+
+				$detail_entry->national_delivery_fee_yen = round($detail_entry->national_delivery_fee 
+																	* $order->cny_jpy_rate);
+
+				$detail_entry->subtotal_price            = round($detail_entry->product_price
+															+ $detail_entry->commission
+															+ $detail_entry->national_delivery_fee_yen);
+
+				$international_delivery_fee += round(
+												ceil($detail_amount / Config::get('constant.unit_one_box'))
+													* Utility::get_unit_international_delivery_fee_rate($detail_amount)
+												);
+
+				$sum_product_price         += $product_price;
+				$sum_national_delivery_fee += $detail_entry->national_delivery_fee_yen;
+
+				$update_detail_entry[] = $detail_entry;
+			}
+			$sum_product_price = round($sum_product_price);
+			$sum_fba_barcode_price = round($sum_fba_barcode_price);
+			$sum_opp_packing_price = round($sum_opp_packing_price);
+
+			$sum_commission = round($sum_product_price
+										* ($commission->commission * 0.01));
+
+			if($sum_commission < $commission->minimum_commission) {
+				$sum_commission = $commission->minimum_commission;
+			}
+
+			// 発送伝票がない場合、国際送料を自動計算
+		   $total_delivery_fee = Model_Send_Jnl::total_delivery_fee_by_order($order->id, $order->user_id);
+			if($total_delivery_fee == 0) {
+				$unit_international_delivery_fee_max = Utility::get_constant_get2('constant.unit_international_delivery_fee_max', $order->order_kbn);
+				if($international_delivery_fee > $unit_international_delivery_fee_max) {
+					$international_delivery_fee = $unit_international_delivery_fee_max;
+				}
+			} else {
+				$international_delivery_fee = $total_delivery_fee;
+			}
+			// 直送金額計算
+			$sum_send_directly_price = $sum_send_directly_box * Config::get('constant.unit_send_directly_price');
+
+			if($order->special_inspection_flg == Config::get('constant.special_inspection.kbn.yes')) {
+				$special_inspection_price = round($sum_detail_amount * Config::get('constant.unit_special_inspection_price'));
+			} else {
+				$special_inspection_price = 0;
+			}
+
+			$sum_option = $special_inspection_price
+							+ $sum_fba_barcode_price
+							+ $sum_opp_packing_price
+							+ $sum_other_option_price;
+
+			$sum_tax = round($sum_commission 
+								* (Config::get('constant.consumption_tax') * 0.01));
+
+			$sum_price = $sum_product_price
+							+ $sum_commission
+							+ $sum_national_delivery_fee
+							+ $international_delivery_fee
+							+ $sum_tax
+							+ $sum_send_directly_price
+							+ $sum_option;
+			if($order->payer_commission > 0) {
+				$sum_price += $sum_price * ($order->payer_commission / 100);
+			}
+			$sum_price = round($sum_price);
+
+			$detail_count = count($update_detail_entry);
+			if($detail_count == 0) {
+				throw new FuelException('明細は1行以上入力してください。');
+			}
+
+			$order->order_status = $order_status;
+			if($order->order_status != Config::get('constant.order_status.kbn.draft')
+				&& $order->order_status != Config::get('constant.order_status.kbn.temporary')) {
+				if($min_detail_status != 1000) {
+					$order->order_status = $min_detail_status;
+				} else {
+					$order->order_status = Config::get('constant.order_status.kbn.cancel');
+				}
+			}
+			if($order_status == Config::get('constant.order_status.kbn.draft')) { // 差し戻しのときは、仮確定フラグも戻す
+				$order->temp_settle_flg = Config::get('constant.temp_settle_flg.kbn.no');
+			}
+			$order->detail_count               = $detail_count;
+			$order->commission_rate            = $commission->commission;
+			$order->minimum_commission         = $commission->minimum_commission;
+			$order->product_price              = $sum_product_price;
+			$order->commission                 = $sum_commission;
+			$order->national_delivery_fee      = $sum_national_delivery_fee;
+			$order->international_delivery_fee = $international_delivery_fee;
+			$order->sum_send_directly_price    = $sum_send_directly_price;
+			$order->special_inspection_price   = $special_inspection_price;
+			$order->option_price               = $sum_option;
+			$order->sum_tax                    = $sum_tax;
+			$order->sum_price                  = $sum_price;
+			$order->save();
+
+			foreach ($update_detail_entry as $detail_entry) {
+				$detail_entry->order_id = $order->id;
+				$detail_entry->save();
+			}
+			foreach ($delete_detail_entry as $detail_entry) {
+				$detail_entry->delete();
+			}
+
+			if($order->order_status == Config::get('constant.order_status.kbn.draft')
+				|| $order->order_status == Config::get('constant.order_status.kbn.cancel')) {
+				$bill = Model_Order_Bill_Jnl::select_primary($order->user_id, $order->id);
+				if($bill) {
+					$deposit_kbn = Config::get('constant.deposit_status.kbn.receipt');
+					if($order->order_status == Config::get('constant.order_status.kbn.draft')) {
+						$reason = '請求データ削除';
+						Model_Order_Bill_Jnl::delete_bill($order->user_id, $order->id);
+					} else {
+						$reason = '注文キャンセル';
+					}
+					Model_Deposit_Jnl::deposit_interface($user, $order->id, $deposit_kbn, 
+															$reason, $bill->sum_price, 
+															$bill->cny_jpy_rate);
+				}
+			}
+			DB::commit_transaction();
+
+			return json_encode(array(
+				'error' => '',
+				'info' => '注文を更新しました。',
+				'reload' => '500',
+				'order_id' => $order->id,
+			));
+		}
+		catch (FuelException $e) {
+			DB::rollback_transaction();
+			return json_encode(array(
+					'error' => $e->getMessage(),
+					'info' => ''
+				));
+		}
+		catch (Exception $e) {
+			DB::rollback_transaction();
+			Log::error('注文シート（管理）：' . $e);
+			return json_encode(array(
+				'error' => 'データの更新に失敗しました。',
+				'info' => ''
+			));
+		}
+	}
+
+	public function action_settle() {
+		$order_id = Input::post('order_id');
+
+		try {
+			DB::start_transaction();
+
+			$order = Model_Order_Jnl::select_for_update_primary($order_id);
+			if(!$order) {
+				throw new FuelException('注文が存在しません。');
+			}
+			if($order->order_status != Config::get('constant.order_status.kbn.temporary')) {
+				throw new FuelException('更新できない注文ステータスです。');
+			}
+			if(Input::post('order_updated_at') != $order->updated_at) {
+				throw new FuelException('他ユーザに更新されています。もう一度入力してください。');
+			}
+
+			if($order->temp_settle_flg == Config::get('constant.temp_settle_flg.kbn.yes')) {
+				$order->temp_settle_flg = Config::get('constant.temp_settle_flg.kbn.no');
+			} else {
+				$order->temp_settle_flg = Config::get('constant.temp_settle_flg.kbn.yes');
+
+				$body = Utility::get_mail_template('template_temp_settle.txt');
+				$body = Utility::mb_str_replace('%order_id%', $order->id, $body);
+				$body = Utility::mb_str_replace('%date%', Utility::get_datetime_now(), $body);
+
+				$user = Model_Users::select_for_update_primary($order->user_id);
+
+				$entry = Model_Mail_Queue::forge();
+				$entry->to      = $user->email;
+				$entry->to_name = $user->name . '様';
+				$entry->subject = '仮確定（OEM）をご連絡いたします。';
+				$entry->body    = $body;
+				Model_Mail_Queue::insert_entry($entry);
+			}
+			$order->save();
+
+			DB::commit_transaction();
+
+			return json_encode(array(
+				'error' => '',
+				'info' => '注文を更新しました。',
+				'reload' => '500',
+				'order_id' => $order->id,
+			));
+		}
+		catch (FuelException $e) {
+			DB::rollback_transaction();
+			return json_encode(array(
+					'error' => $e->getMessage(),
+					'info' => ''
+				));
+		}
+		catch (Exception $e) {
+			DB::rollback_transaction();
+			Log::error('注文シート（管理）：' . $e);
+			return json_encode(array(
+				'error' => 'データの更新に失敗しました。',
+				'info' => ''
+			));
+		}
+	}
+
+	private function bill_finish($order_id, $bill_flg) {
+		if($bill_flg) {
+			$order_status_pre = Config::get('constant.order_status.kbn.preparation');
+			$order_status_aft = Config::get('constant.order_status.kbn.finish');
+			$message_prefix = '請求確定';
+		} else {
+			$order_status_pre = Config::get('constant.order_status.kbn.finish');
+			$order_status_aft = Config::get('constant.order_status.kbn.preparation');
+			$message_prefix = '確定解除';
+		}
+
+		try {
+			DB::start_transaction();
+
+			$order = Model_Order_Jnl::select_for_update_primary($order_id);
+			if(!$order) {
+				throw new FuelException('注文が存在しません。');
+			}
+			if($order->order_status != $order_status_pre) {
+				throw new FuelException($message_prefix . 'の準備ができていません。');
+			}
+			$bill_jnl = Model_Order_Bill_Jnl::select_primary($order->user_id, $order->id);
+			if(!$bill_jnl) {
+				throw new FuelException('請求データが存在しません。');
+			}
+
+			if($bill_flg) {
+				$send_jnl_list = Model_Send_Jnl::select_by_order_id($order->id, $order->user_id);
+				if(empty($send_jnl_list)) {
+					throw new FuelException('発送伝票が入力されていません。');
+				}
+
+				$bill_order_datas = Model_Order_Detail::select_send_is_valid($order->id);
+				if($bill_order_datas) {
+					$bill_error_message = '';
+					foreach ($bill_order_datas as $bill_order_data) {
+						$detail_no = $bill_order_data['detail_no'] + 1;
+						$bill_error_message .= '注文No:' . $bill_order_data['order_id'] . ' 明細行番号:' . $detail_no . ' は発送伝票の数量と一致しません。<br />';
+					}
+					throw new FuelException($bill_error_message);
+				}
+
+				$international_delivery_fee	= 0;
+				foreach($send_jnl_list as $send_jnl) {
+					$international_delivery_fee += $send_jnl->delivery_fee;
+				}
+				$order->international_delivery_fee = $international_delivery_fee;
+				$sum_price = $order->product_price
+										+ $order->commission
+										+ $order->national_delivery_fee
+										+ $order->international_delivery_fee
+										+ $order->sum_tax
+										+ $order->sum_send_directly_price
+										+ $order->option_price;
+				if($order->payer_commission > 0) {
+					$sum_price += $sum_price * ($order->payer_commission / 100);
+				}
+				$order->sum_price = round($sum_price);
+			}
+			$order->order_status = $order_status_aft;
+			$order->save();
+
+			foreach(Model_Order_Detail::get_order_list_admin($order->id) as $detail) {
+				if($detail->detail_status == $order_status_pre) {
+					$detail->detail_status = $order_status_aft;
+					$detail->save();
+				}
+			}
+
+			// 注文ヘッダ（請求） - 注文ヘッダ.合計金額
+			if($bill_flg) {
+				$adjusted_amount = $bill_jnl->sum_price - $order->sum_price;
+			} else {
+				$adjusted_amount = $order->sum_price - $bill_jnl->sum_price;
+			}
+			if($adjusted_amount >= 0) {
+				$deposit_kbn = Config::get('constant.deposit_status.kbn.receipt');
+			} else {
+				$deposit_kbn = Config::get('constant.deposit_status.kbn.pay');
+			}
+			$reason = $message_prefix . '（精算）';
+			$user = Model_Users::select_for_update_primary($order->user_id);
+			Model_Deposit_Jnl::deposit_interface($user, $order->id, $deposit_kbn,
+													$reason, abs($adjusted_amount), 
+													$order->cny_jpy_rate);
+
+			DB::commit_transaction();
+
+			if($bill_flg) {
+				$body = Utility::get_mail_template('template_bill_adjust.txt');
+				$body = Utility::mb_str_replace('%order_id%', $order->id, $body);
+				$body = Utility::mb_str_replace('%date%', Utility::get_datetime_now(), $body);
+
+				$entry = Model_Mail_Queue::forge();
+				$entry->to      = $user->email;
+				$entry->to_name = $user->name . '様';
+				$entry->subject = '精算書の発行をご連絡いたします。';
+				$entry->body    = $body;
+				Model_Mail_Queue::insert_entry($entry);
+			}
+
+			return json_encode(array(
+				'error' => '',
+				'info' => $message_prefix . 'をしました。',
+			));
+		}
+		catch (FuelException $e) {
+			DB::rollback_transaction();
+			return json_encode(array(
+					'error' => $e->getMessage(),
+					'info' => ''
+				));
+		}
+		catch (Exception $e) {
+			DB::rollback_transaction();
+			return json_encode(array(
+				'error' => $message_prefix . 'に失敗しました。',
+				'info' => ''
+			));
+		}
+	}
+
+	public function action_bill_cancel() {
+		$order_id = Input::post('id');
+		return $this->bill_finish($order_id, false);
+	}
+
+	public function action_bill() {
+		$order_id = Input::post('id');
+		return $this->bill_finish($order_id, true);
+	}
+}

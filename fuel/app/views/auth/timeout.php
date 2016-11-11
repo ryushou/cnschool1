@@ -1,0 +1,1 @@
+<div class="container content">	<div class="jumbotron">		<h1>ページの有効期限切れです。</h1>		</br>		<p>無効な操作が行われました。</p>		<p>ブラウザの「戻る」ボタンで戻るか、トップページに戻って操作してください。</p>		</br>		<a href="<?= Uri::create("/") ?>" class="btn btn-primary btn-lg"><i class="fa fa-home"></i>&nbsp;トップページに戻る</a>	</div></div>

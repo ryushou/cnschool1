@@ -1,0 +1,103 @@
+<?php
+
+class Controller_Order_List extends Controller_Template {
+
+	public $template = 'template/template';
+
+	public function before() {
+		parent::before();
+		if (!Auth::has_access('web.menu')) {
+			Response::redirect('base/timeout');
+		}
+	}
+
+	public function action_index() {
+		$this->template->title = '注文一覧';
+		$this->template->content = View::forge('order/list');
+	}
+
+	private function get_order_array($order) {
+		$detail = array();
+		$detail['id']               = $order['id'];
+		$detail['created_at']       = $order['created_at'];
+		$detail['detail_count']     = $order['detail_count'];
+		$detail['sum_price']        = $order['sum_price'];
+		$detail['image_id']         = $order['image_id'];
+		$detail['payer_name']       = $order['payer_name'];
+		$detail['payer_url']        = $order['payer_url'];
+		$detail['order_status']     = $order['order_status'];
+		$detail['order_status_flg'] = $order['order_status_flg'];
+		$detail['order_kbn']        = $order['order_kbn'];
+		$detail['send_fba_flg']     = $order['send_fba_flg'];
+		$detail['user_note']        = $order['user_note'];
+		$detail['message_unread_count'] = $order['message_unread_count'];
+		
+		$detail['send_name']        = $order['send_name'];
+		$detail['send_receiver']        = $order['send_receiver'];
+		return $detail;
+	}
+
+	public function action_search() {
+		$user_id                   = Utility::get_user_id();
+		$search                    = array();
+		$search['status']          = Input::get('status', '');
+		$search['status_range']    = Input::get('status_range', '');		
+		$search['order_date_from'] = Input::get('order_date_from', '');
+		$search['order_date_to']   = Input::get('order_date_to', '');
+
+		$order_ids = Model_Order_Jnl::get_order_ids_user_lists($user_id, $search);
+		if(empty($order_ids)) {
+			return json_encode(array(
+				'pagination' => '',
+				'detail'  => ''
+			));
+		}
+		$total_items = Model_Order_Jnl::get_user_lists_count($user_id, $order_ids);
+		$pagination  = Pagination::forge('bootstrap3', Utility::get_paging_config($total_items));
+		$orders      = Model_Order_Jnl::get_user_lists($user_id, $order_ids, $pagination);
+
+		$details = array();
+		foreach ($orders as $order) {
+			$order['order_status_flg'] = $order['order_status'];
+			$order['order_status'] = Utility::get_constant_name2('order_status', $order['order_kbn'], $order['order_status']);
+			$order['send_fba_flg'] = Utility::get_constant_name('address_kind', $order['send_fba_flg']);
+			$details[]             = $this->get_order_array($order);
+		}
+
+		return json_encode(array(
+			'pagination' => $pagination->render(),
+			'detail'  => $details
+		));
+	}
+
+	public function action_delete() {
+		$user_id  = Utility::get_user_id();
+		$order_id = Input::post('order_id', '');
+
+		try {
+			DB::start_transaction();
+
+			if(Config::get('constant.order_status.kbn.draft') 
+				!= Model_Order_Jnl::select_for_update_primary($order_id, $user_id)->order_status) {
+				return json_encode(array(
+					'error' => '作成中でないため、注文を削除できませんでした。',
+					'info' => ''
+				));
+			}
+			Model_Order_Jnl::delete_order_lists($user_id, $order_id);
+
+			DB::commit_transaction();
+		}
+		catch (\Database_exception $e) {
+			DB::rollback_transaction();
+			return json_encode(array(
+				'error' => '注文を削除ができませんでした。管理者にお問い合わせください。',
+				'info' => ''
+			));
+		}
+		return json_encode(array(
+			'error' => '',
+			'info' => '注文を削除しました。'
+		));
+	}
+}

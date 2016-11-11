@@ -1,0 +1,1 @@
+<div class="container content">	<div class="jumbotron">		<h1>404 page not found.</h1>		</br>		<p>			お探しのページは存在しないようです。</br>			ブラウザの「戻る」ボタンから戻るか、トップページに戻ってください。		</p>		</br>		<a href="<?= Uri::create("/") ?>" class="btn btn-primary btn-lg"><i class="fa fa-home"></i>&nbsp;トップページに戻る</a>	</div></div>

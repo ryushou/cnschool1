@@ -1,0 +1,1 @@
+<?php Asset::add_path('assets/plugins/', 'css');  ?><?php Asset::add_path('assets/plugins/', 'js');  ?><?php Asset::add_path('assets/css/theme/img/', 'img');  ?><!-- CSS Global Compulsory --><?= Asset::css('theme/top.css');?><!--=== Content Part ===--><div class="container content">        <h1>ログイン画面</h1></div><!--/container-->     <!-- End Content Part -->

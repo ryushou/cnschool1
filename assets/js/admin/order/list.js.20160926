@@ -1,0 +1,326 @@
+$(function() {
+	function form_value_reset() {
+		$("#order_id").val('');
+		$("#user_id").val('');
+		$('#form_status').val('');
+		$('#form_status_range').val('');
+		$('#form_untransact').val('');
+	}
+
+	$("#search_button").click(function(e){
+		e.preventDefault();
+		order_reference(false, 1);
+	});
+
+	$("#reset_button").click(function(e) {
+		form_value_reset();
+		e.preventDefault();
+	});
+
+	
+	var get_search_param = function(paging_flg) {
+		var param = {};
+		return function(paging_flg, page_id) {
+			if(!paging_flg) {
+				param["order_id"]     = $("#order_id").val();
+				param["user_id"]      = $("#user_id").val();
+				param["status"]       = $("#form_status").val();
+				param["status_range"] = $("#form_status_range").val();
+				param["message"]      = $("#form_message").val();
+				param["untransact"]   = $("#form_untransact").val();
+				param["sort"]         = $("#form_sort").val();
+				
+				param["fba_flg"]         = $("#form_fba_flg").val();
+			}
+			param["page"] = page_id; // for pagination
+			return param;
+		};
+	}();
+
+	function order_reference(paging_flg, page_id) {
+		var param = get_search_param(paging_flg, page_id);
+		setCsrfToken(param);
+
+		var loading = $("#loading").show();
+		$('#search_button').button('loading');
+		$('#reset_button').button('loading');
+		$('#download_button').button('loading');
+		$('#all_data_download_button').button('loading');
+		$('.bill_confirm_button').button('loading');
+		$('.bill_cancel_confirm_button').button('loading');
+
+		$.ajax({
+			url: BASE_URL + 'admin/order/list/search',
+			type: 'GET',
+			dataType: 'json',
+			data: param,
+		})
+		.done(function(data) {
+			outputdata = [];
+			$.each(data["detail"], function(i, val) {
+				var d = {};
+				d["id"]           = val["id"];
+				d["user_id"]      = val["user_id"];
+				d["created_at"]   = val["created_at"];
+				d["ordered_at"]   = val["ordered_at"];
+				d["detail_count"] = get_number_format(val["detail_count"]);
+				d["sum_price"]    = get_number_format(val["sum_price"]);
+				d["image_src"]    = get_image_format(val["image_id"]);
+				d["payer_name"]   = val["payer_name"];
+				d["payer_url"]    = val["payer_url"];
+				d["order_status"] = val["order_status"];
+				d["order_status_flg"] = val["order_status_flg"];
+				d["order_kbn"]    = val["order_kbn"];
+				d["send_fba_flg"] = val["send_fba_flg"];
+				
+				if(d["send_fba_flg"]=="FBA"||d["send_fba_flg"]=="FBA（船便）"){
+					d["send_fba_flg"]=val["send_receiver"];
+				}
+				if(d["send_fba_flg"]=="事務所"||d["send_fba_flg"]=="事務所（船便）"){
+					d["send_fba_flg"]=val["send_name"];
+				}   
+					
+				d["message_unread_count"] = val["message_unread_count"];
+				outputdata.push(d);
+			});
+			$('#output_result').empty();
+			$('#output_template').tmpl({data : outputdata}).appendTo('#output_result');
+			$('#pagination').html(data["pagination"]);
+		})
+		.fail(function(req, status, thrown) {
+			if(req.readyState == 0 || req.status == 0) {
+				return;
+			} else {
+				alert('error:' + req.status);
+			}
+		})
+		.always(function(req, status) {
+			loading.fadeOut("normal");
+			$('#search_button').button('reset');
+			$('#reset_button').button('reset');
+			$('#download_button').button('reset');
+			$('#all_data_download_button').button('reset');
+			$('.bill_confirm_button').button('reset');
+			$('.bill_cancel_confirm_button').button('reset');
+		});
+	}
+
+	$(document).on('click', '#pagination a', function (e) {
+		e.preventDefault();
+		var page_id = $(this).attr('value').replace('?page=', '');
+		order_reference(true, page_id);
+	});
+
+	$(document).on('click', 'button.bill_confirm_button', function (e) {
+		e.preventDefault();
+		$('#order_id_modal').val($(this).attr('value'));
+		$('#info_bill_modal').modal('show');
+	});
+
+	$(document).on('click', 'button.bill_cancel_confirm_button', function (e) {
+		e.preventDefault();
+		$('#order_id_modal').val($(this).attr('value'));
+		$('#info_bill_cancel_modal').modal('show');
+	});
+
+	$("#bill_button,#bill_cancel_button").click(function(e){
+		var param = {};
+		param['id'] = $('#order_id_modal').val();
+		setCsrfToken(param);
+
+		var loading = $("#loading").show();
+
+		$('#search_button').button('loading');
+		$('#reset_button').button('loading');
+		$('#download_button').button('loading');
+		$('#all_data_download_button').button('loading');
+		$('.bill_confirm_button').button('loading');
+		$('.bill_cancel_confirm_button').button('loading');
+
+		$('#info_bill_modal').modal('hide');
+		$('#info_bill_cancel_modal').modal('hide');
+
+		var post_url;
+		if($(this).val() == 'bill') {
+			post_url = 'admin/order/sheet/bill';
+		} else {
+			post_url = 'admin/order/sheet/bill_cancel';
+		}
+
+		$.ajax({
+			url: BASE_URL + post_url,
+			type: 'POST',
+			dataType: 'json',
+			data: param,
+			error: function(req, status, thrown) {
+				if(req.readyState == 0 || req.status == 0) {
+					return;
+				} else {
+					alert('error:' + req.status);
+				}
+			},
+			success: function(returnValue) {
+				if(returnValue.error != '') {
+					display_error_message(returnValue.error);
+				}
+				if(returnValue.info != '') {
+					display_info_message(returnValue.info);
+				}
+			},
+			complete: function(req, status) {
+				loading.fadeOut("normal");
+
+				$('#search_button').button('reset');
+				$('#reset_button').button('reset');
+				$('#download_button').button('reset');
+				$('#all_data_download_button').button('reset');
+				$('.bill_confirm_button').button('reset');
+				$('.bill_cancel_confirm_button').button('reset');
+
+				order_reference(true, 1);
+			}
+		});
+		e.preventDefault();
+	});
+
+	$("#download_button").click(function(e) {
+		var loading = $("#loading").show();
+
+		$('#search_button').button('loading');
+		$('#reset_button').button('loading');
+		$('#download_button').button('loading');
+		$('#all_data_download_button').button('loading');
+		$('.bill_confirm_button').button('loading');
+		$('.bill_cancel_confirm_button').button('loading');
+
+		var param = {};
+		param["order_id"]     = $("#order_id").val();
+		param["user_id"]      = $("#user_id").val();
+		param["status"]       = $("#form_status").val();
+		param["status_range"] = $("#form_status_range").val();
+		param["message"]      = $("#form_message").val();
+		param["untransact"]   = $("#form_untransact").val();
+		param["sort"]         = $("#form_sort").val();
+		setCsrfToken(param);
+
+		$.ajax({
+			type: "POST",
+			url: BASE_URL + "admin/order/get/download_data",
+			data: param,
+			dataType: "json",
+			error: function(req, status, thrown) {
+				if(req.readyState == 0 || req.status == 0) {
+					return;
+				} else {
+					alert('error:' + req.status);
+				}
+			},
+			success: function(returnValue) {
+				var param = {};
+				param["data"]  = returnValue["detail"];
+				param["mode"]  = 'csv';
+				param["title"] = '注文一覧';
+				setCsrfToken(param);
+
+				$.ajax({
+					type: "POST",
+					url: BASE_URL + "file/export",
+					data: param,
+					dataType: "json",
+					error: function(req, status, thrown) {
+						if(req.readyState == 0 || req.status == 0) {
+							return;
+						} else {
+							alert('error:' + req.status);
+						}
+					},
+					success: function(returnValue) {
+						if(returnValue.info != '') {
+							display_info_message(returnValue.info);
+							location.href = BASE_URL + "file/download";
+							order_reference(false, 1);
+						}
+					}
+				});
+			},
+			complete: function(req, status) {
+				loading.fadeOut();
+
+				$('#search_button').button('reset');
+				$('#reset_button').button('reset');
+				$('#download_button').button('reset');
+				$('#all_data_download_button').button('reset');
+				$('.bill_confirm_button').button('reset');
+				$('.bill_cancel_confirm_button').button('reset');
+			}
+		});
+	});
+
+	$("#all_data_download_button").click(function(e) {
+		var loading = $("#loading").show();
+
+		$('#search_button').button('loading');
+		$('#reset_button').button('loading');
+		$('#download_button').button('loading');
+		$('#all_data_download_button').button('loading');
+		$('.bill_confirm_button').button('loading');
+		$('.bill_cancel_confirm_button').button('loading');
+
+		var param = {};
+		setCsrfToken(param);
+
+		$.ajax({
+			type: "POST",
+			url: BASE_URL + "admin/order/get/all_data_download_data",
+			data: param,
+			dataType: "json",
+			error: function(req, status, thrown) {
+				if(req.readyState == 0 || req.status == 0) {
+					return;
+				} else {
+					alert('error:' + req.status);
+				}
+			},
+			success: function(returnValue) {
+				var param = {};
+				param["data"]  = returnValue["detail"];
+				param["mode"]  = 'csv';
+				param["title"] = '注文データ';
+				setCsrfToken(param);
+
+				$.ajax({
+					type: "POST",
+					url: BASE_URL + "file/export",
+					data: param,
+					dataType: "json",
+					error: function(req, status, thrown) {
+						if(req.readyState == 0 || req.status == 0) {
+							return;
+						} else {
+							alert('error:' + req.status);
+						}
+					},
+					success: function(returnValue) {
+						if(returnValue.info != '') {
+							display_info_message(returnValue.info);
+							location.href = BASE_URL + "file/download";
+							order_reference(false, 1);
+						}
+					}
+				});
+			},
+			complete: function(req, status) {
+				loading.fadeOut();
+
+				$('#search_button').button('reset');
+				$('#reset_button').button('reset');
+				$('#download_button').button('reset');
+				$('#all_data_download_button').button('reset');
+				$('.bill_confirm_button').button('reset');
+				$('.bill_cancel_confirm_button').button('reset');
+			}
+		});
+	});
+
+	order_reference(false, 1);
+});

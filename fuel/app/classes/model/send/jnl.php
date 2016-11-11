@@ -1,0 +1,82 @@
+<?php
+	class Model_Send_Jnl extends Orm\Model {
+		protected static $_table_name = 'send_jnl';
+		protected static $_properties = array (
+			'id',
+			'order_id',
+			'user_id',
+			'created_at',
+			'updated_at',
+			'delivery_date',
+			'delivery_name',
+			'send_no',
+			'total_box',
+			'weight',
+			'total_price',
+			'delivery_fee',
+			'delivery_fee_cny',
+			'send_mail_flg',
+		);
+		protected static $_primary_key = array (
+			'id',
+		);
+		protected static $_observers = array(
+			'Orm\Observer_CreatedAt' => array (
+				'events' => array('before_insert'),
+				'mysql_timestamp' => true,
+			),
+			'Orm\Observer_UpdatedAt' => array (
+				'events' => array('before_save'),
+				'mysql_timestamp' => true,
+			),
+		);
+
+		public static function select_primary_admin($send_id) {
+			return Model_Send_Jnl::find($send_id);
+		}
+
+		public static function select_for_update_primary($send_id) {
+			$query = DB::select_array(Model_Send_Jnl::$_properties)
+					->from(Model_Send_Jnl::$_table_name)
+					->where('id', $send_id);
+
+			$result = DB::query($query->compile() . ' FOR UPDATE')
+						->execute();
+
+			if($result) {
+				return Model_Send_Jnl::forge($result->current(), false);
+			} else {
+				return false;
+			}
+		}
+
+		public static function delete_send_jnl($send_id) {
+			DB::delete('send_jnl')
+				->where('id', $send_id)
+				->execute();
+		}
+
+		public static function select_by_order_id($order_id, $user_id) {
+			return Model_Send_Jnl::find('all', array(
+					'where' => array(
+						array('order_id', $order_id),
+						array('user_id', $user_id),
+					)
+				));
+		}
+
+		public static function total_delivery_fee_by_order($order_id, $user_id) {
+			return DB::select(DB::expr('ifnull(SUM(delivery_fee), 0) as total'))
+				->from('send_jnl')
+				->where('order_id', $order_id)
+				->and_where('user_id', $user_id)
+				->execute()->current()['total'];
+		}
+		public static function find_delivery_date($order_id) {
+			$result = \DB::query(
+							'select MIN(A.delivery_date) as mindate from send_jnl A ' .
+							'where A.order_id = ' .$order_id . '' )
+					  ->execute();
+			return $result->as_array();
+		}		
+	}

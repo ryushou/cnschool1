@@ -1,0 +1,1 @@
+<!-- CSS Global Compulsory --><?= Asset::css('theme/top.css');?><!-- CSS Theme --><?= Asset::css('theme/themes/orange.css');?><!--=== Content Part ===--><div class="container content"></div><!--/container-->		<!-- End Content Part -->

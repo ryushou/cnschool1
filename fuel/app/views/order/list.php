@@ -1,0 +1,158 @@
+<?= View::forge('template/grid') ?>
+
+<?= Asset::js('jquery.tooltip.js');?>
+<?= Asset::js('order/list.js');?>
+
+<div class="container content">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<i class="fa fa-check-square-o"></i>&nbsp;注文一覧
+			<span class="jquery-tooltip-class">
+				&nbsp;<i class="fa fa-question-circle"></i>
+				<span class="jquery-tooltip-content-class" style="display:none;">
+					<div class="jquery-tooltip-content-title">画面についての説明</div>
+					<div class="jquery-tooltip-content-body">
+						注文している商品の一覧を表示します。<br/>
+					</div>
+				</span>
+			</span>
+		</div>
+		<div class="panel-body">
+			<h5><i class="fa fa-download"></i>&nbsp;下記項目を入力して注文一覧を検索してください</h5>
+			<form class="form-horizontal" role="form">
+				<div class="form-group">
+					<label class="control-label" for="form_status">ステータス：</label>
+					<div class="form-control-box">
+						<?= Form::select('status', '', Utility::get_constant_name('order_status'), array('class'=>'form-control')); ?>
+					</div>
+					<div class="form-control-box">
+						<?= Form::select('status_range', '', array('' => '', 'before' => '以前', 'after' => '以降'), array('class'=>'form-control')); ?>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" for="order_date_from">作成日：</label>
+					<div class="form-control-box search-date-control">
+						<input type="text" id="order_date_from" name="order_date_from" class="form-control" value="" />
+					</div>
+					<label class="control-label control-label-30" for="order_date_to">～</label>
+					<div class="form-control-box search-date-control">
+						<input type="text" id="order_date_to" name="order_date_to" class="form-control" value="" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label"></label>
+					<div class="form-control-box">
+						<button type="button" class="btn btn-primary" id="search_button" data-loading-text="Loading...">
+							<i class="fa fa-search"></i>&nbsp;検索
+						</button>
+						<button type="button" class="btn btn-primary" id="reset_button" data-loading-text="Loading...">
+							<i class="fa fa-minus"></i>&nbsp;リセット
+						</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div id="loading">
+		<?= Asset::img('loading.gif') ?>
+	</div>
+
+	<div id="info_delete_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h5 class="modal-title"><i class="fa fa-exclamation-circle"></i>&nbsp;注文削除の確認</h5>
+				</div>
+				<div class="modal-body">注文を削除しますか？</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" id="delete_button" data-loading-text="Loading...">削除する</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal">いいえ</button>
+					<input type="hidden" id="order_id_modal" value="" />
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<table class="table table-bordered table-hover common-list-table order-list-table">
+		<thead class="order-list-thead">
+			<tr>
+				<td class="common-list-table-short"></td>
+				<td class="common-list-table-short">注文No</td>
+				<td class="common-list-table-middle">作成日時</td>
+<!--			<td class="common-list-table-middle">纳期予定日</td>-->
+				<td class="common-list-table-short">明細数</td>
+				<td class="common-list-table-short">合計金額</td>
+				<td class="common-list-table-middle">商品画像</td>
+				<td class="common-list-table-short">振込先</td>
+				<td class="common-list-table-middle">ステータス</td>
+				<td class="common-list-table-short">配送先</td>
+				<td class="common-list-table-short">ユーザメモ</td>
+				<td class="common-list-table-short"></td>
+			</tr>
+		</thead>
+		<tbody id="output_result"></tbody>
+		<script id="output_template" type="text/x-jquery-tmpl">
+			{{each data}}
+			<tr>
+				<td>
+					<div class="badge-block">
+						<a href="/order/sheet?id=${id}">
+							<button type="button" class="btn btn-success">
+								<i class="fa fa-search"></i>&nbsp;詳細
+							</button>
+						</a>
+						{{if message_unread_count > 0 }}
+							<span class="badge rounded-x">${message_unread_count}</span>
+						{{/if}}
+					</div>
+				</td>
+				<td>${id}</td>
+				<td>${created_at}</td>
+				<td>${detail_count}</td>
+				<td class="text-right">${sum_price}</td>
+				<td>
+					<a class="thumbnail">
+						<img src="${image_src}" class="img-content" />
+					</a>
+				</td>
+				<td><a href="${payer_url}" target="_blank">${payer_name}</a></td>
+				<td>
+					${order_status}
+					{{if order_kbn == <?= Config::get('constant.order_kbn.kbn.oem') ?> }}
+						<br/>（OEM）
+					{{/if}}
+				</td>
+				<td>${send_fba_flg}</td>
+				<td>${user_note}</td>
+				<td>
+					{{if (order_status_flg >= <?= Config::get('constant.order_status.kbn.buy') ?>
+						| order_status_flg == <?= Config::get('constant.order_status.kbn.cancel') ?> )
+						& order_status_flg != <?= Config::get('constant.order_status.kbn.temporary') ?>
+					 }}
+						<a href="/report/bill?id=${id}" target="_blank">
+							<button type="button" class="btn btn-primary margin-bottom-10">
+								<i class="fa fa-file-text-o"></i>&nbsp;請求書
+							</button>
+						</a>
+					{{/if}}
+					{{if order_status_flg == <?= Config::get('constant.order_status.kbn.finish') ?>}}
+						<a href="/report/bill/adjust?id=${id}" target="_blank">
+							<button type="button" class="btn btn-success margin-bottom-10">
+								<i class="fa fa-file-text-o"></i>&nbsp;精算書
+							</button>
+						</a>
+					{{/if}}
+					{{if order_status_flg == <?= Config::get('constant.order_status.kbn.draft') ?>}}
+						<button type="button" class="btn btn-danger delete_button" value="${id}" data-loading-text="Loading...">
+							<i class="fa fa-minus"></i>&nbsp;削除
+						</button>
+					{{/if}}
+				</td>
+			</tr>
+			{{/each}}
+		</script>
+	</table>
+	<div id="pagination" class="table-pagination"></div>
+</div>

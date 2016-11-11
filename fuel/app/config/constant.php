@@ -1,0 +1,1219 @@
+<?php
+/**
+ * Fuel is a fast, lightweight, community driven PHP5 framework.
+ *
+ * @package    Fuel
+ * @version    1.5
+ * @author     Fuel Development Team
+ * @license    MIT License
+ * @copyright  2010 - 2013 Fuel Development Team
+ * @link       http://fuelphp.com
+ */
+
+/**
+ * NOTICE:
+ *
+ * If you need to make modifications to the default configuration, copy
+ * this file to your app/config folder, and make them in there.
+ *
+ * This will allow you to upgrade fuel without losing your custom config.
+ */
+
+return array(
+	'consumption_tax' => 8,                          // 消費税率
+	'national_delivery_fee' => 20,                   // 元
+	'unit_one_box' => 1,                             // 1箱の数量単位
+
+//	'unit_send_directly_price' => 524,               // 1箱の直送金額
+	'unit_send_directly_price' => 0,               // 1箱の直送金額
+
+	'unit_send_directly_one_box' => 100,             // 1箱の数量単位（直送）
+	'unit_international_delivery_rank_a_min' => 1,
+	'unit_international_delivery_rank_b_min' => 21,
+	'unit_international_delivery_rank_c_min' => 501,
+	'unit_international_delivery_rank_a_fee' => 336, // 1箱(rank_aのとき)の国際送料
+	'unit_international_delivery_rank_b_fee' => 156, // 1箱(rank_bのとき)の国際送料
+	'unit_international_delivery_rank_c_fee' => 5,  // 1箱(rank_cのとき)の国際送料
+	'unit_international_delivery_fee_max' => array( // 国際送料（見積）の上限
+		'0' => 30000,
+		'1' => 0,
+	),
+	// 'unit_special_inspection_price' => 54,           // 特別検品：
+	'unit_special_inspection_price' => 0,           // 特別検品：
+
+//	'unit_fba_barcode_price' => 21.8,                // FBAバーコード貼り付け
+//	'unit_opp_packing_price' => 32.4,                // OPP袋詰め
+	'unit_fba_barcode_price' => 0,                // FBAバーコード貼り付け
+	'unit_opp_packing_price' => 0,                // OPP袋詰め
+
+ 	'order_detail_count_normal' => 20,               // ノーマルの注文シートのデフォルト明細数
+	'order_detail_count' => 40,                      // ノーマル以外
+	'server_identifier' => 'DEV',
+
+	'pdf_template_dir' => APPPATH . 'tmp/pdf/',
+	'query_profile_key' => 'query_profile_key',
+
+	'no_image_id' => '-1',
+
+	'dynamic_config' => array(
+		'env' => array(
+			Fuel::DEVELOPMENT => array(
+				'constant' => array(
+					'send_mail' => array(
+						'from' => 'no-reply@inabas.net',
+						'from_name' => 'GTS運営事務局',
+						'reply_to' => 'stock@inabas.net',
+						'reply_to_name' => 'GTS運営事務局',
+					),
+				),
+			),
+			Fuel::TEST => array(
+
+			),
+			Fuel::PRODUCTION => array(
+
+			),
+		),
+		'host' => array(
+			'cos' => array(
+				'kannihonkai' => array(
+					'net' => array(
+						'constant' => array(
+							'server_identifier' => 'COS',
+							'send_mail' => array(
+								'subject' => array(
+									'prefix' => '【COS】',
+								),
+							),
+							'asset' => array(
+								'logo' => 'top-cos.jpg',
+							),
+							'vip_delivery' => array(
+								'default_name' => 'VIPCOS物流',
+							),
+						),
+					),
+				),
+			),
+			'yiwumart' => array(
+				'kannihonkai' => array(
+					'net' => array(
+						'constant' => array(
+							'server_identifier' => 'YW',
+							'send_mail' => array(
+								'subject' => array(
+									'prefix' => '【イーウーマート】',
+								),
+							),
+							'asset' => array(
+								'logo' => 'top-yiwumart.jpg',
+							),
+							'vip_delivery' => array(
+								'default_name' => 'VIPYM物流',
+							),
+							'member_rank' => array(
+								'kbn' => array(
+								    'none' => 0,
+								    'normal' => 1,
+								    'normal_vip' => 2,
+								    'light' => 3,
+								    'middle' => 4,
+								    'private' => 5,
+								    'standard' => 9, # not used
+								),
+								'name' => array(
+								    '' => '',
+								    '0' => '未設定',
+								    '1' => 'ノーマル会員',
+								    '2' => 'ノーマル会員（V）',
+								    '3' => 'ライト会員',
+								    '4' => 'ミドル会員',
+								    '5' => 'セミプライベート会員',
+								),
+							),
+						),
+					),
+				),
+			),
+			'yiwumart1' => array(
+				'kannihonkai' => array(
+					'net' => array(
+						'constant' => array(
+							'server_identifier' => 'YW',
+							'send_mail' => array(
+								'subject' => array(
+									'prefix' => '【イーウーマート】',
+								),
+							),
+							'asset' => array(
+								'logo' => 'top-yiwumart.jpg',
+							),
+							'vip_delivery' => array(
+								'default_name' => 'VIPYM物流',
+							),
+							'member_rank' => array(
+								'kbn' => array(
+								    'none' => 0,
+								    'normal' => 1,
+								    'normal_vip' => 2,
+								    'light' => 3,
+								    'middle' => 4,
+								    'private' => 5,
+								    'standard' => 9, # not used
+								),
+								'name' => array(
+								    '' => '',
+								    '0' => '未設定',
+								    '1' => 'ノーマル会員',
+								    '2' => 'ノーマル会員（V）',
+								    '3' => 'ライト会員',
+								    '4' => 'ミドル会員',
+								    '5' => 'セミプライベート会員',
+								),
+							),
+						),
+					),
+				),
+			),
+			'cnschool' => array(
+				'kannihonkai' => array(
+					'net' => array(
+						'constant' => array(
+							'server_identifier' => 'CS',
+							'send_mail' => array(
+								'subject' => array(
+									'prefix' => '【CS】',
+								),
+							),
+							'asset' => array(
+								'logo' => 'top-yiwumart.jpg',
+							),
+							'vip_delivery' => array(
+								'default_name' => 'VIPCS物流',
+							),
+							'member_rank' => array(
+								'kbn' => array(
+								    'none' => 0,
+								    'normal' => 1,
+								    'normal_vip' => 2,
+								    'light' => 3,
+								    'middle' => 4,
+								    'private' => 5,
+								    'standard' => 9, # not used
+								),
+								'name' => array(
+								    '' => '',
+								    '0' => '未設定',
+								    '1' => 'ノーマル会員',
+								    '2' => 'ノーマル会員（V）',
+								    '3' => 'ライト会員',
+								    '4' => 'ミドル会員',
+								    '5' => 'セミプライベート会員',
+								),
+							),
+						),
+					),
+				),
+			),
+			'cnschool1' => array(
+				'kannihonkai' => array(
+					'net' => array(
+						'constant' => array(
+							'server_identifier' => 'CS',
+							'send_mail' => array(
+								'subject' => array(
+									'prefix' => '【CS】',
+								),
+							),
+							'asset' => array(
+								'logo' => 'top-yiwumart.jpg',
+							),
+							'vip_delivery' => array(
+								'default_name' => 'VIPCS物流',
+							),
+							'member_rank' => array(
+								'kbn' => array(
+								    'none' => 0,
+								    'normal' => 1,
+								    'normal_vip' => 2,
+								    'light' => 3,
+								    'middle' => 4,
+								    'private' => 5,
+								    'standard' => 9, # not used
+								),
+								'name' => array(
+								    '' => '',
+								    '0' => '未設定',
+								    '1' => 'ノーマル会員',
+								    '2' => 'ノーマル会員（V）',
+								    '3' => 'ライト会員',
+								    '4' => 'ミドル会員',
+								    '5' => 'セミプライベート会員',
+								),
+							),
+						),
+					),
+				),
+			),
+		),
+	),
+
+	'asset' => array(
+		'logo' => 'logo.png',
+	),
+
+	'vip_delivery' => array(
+		'default_name' => 'VIPCS物流',
+	),
+
+	'oem_commission' => array(
+		'rank' => 9,
+		'commission' => 7,
+		'minimum_commission' => 0,
+	),
+
+	'option_list' => array(
+		array('name'=>'ｾｯﾄ2個', 'amount'=>'', 'unitprice'=>64.8),
+		array('name'=>'ｾｯﾄ3個以上', 'amount'=>'', 'unitprice'=>97.2),
+		array('name'=>'OPP袋作成(ﾛｺﾞ入り）', 'amount'=>'', 'unitprice'=>21.6),
+		array('name'=>'写真撮影(3枚)', 'amount'=>'', 'unitprice'=>1080),
+		array('name'=>'紙ﾀｸﾞ・布ﾀｸﾞ作成', 'amount'=>'', 'unitprice'=>21.6),
+		array('name'=>'ｵﾘｼﾞﾅﾙﾊﾟｯｹｰｼﾞ', 'amount'=>'', 'unitprice'=>54),
+		array('name'=>'ﾎﾞﾀﾝ確認・ﾎﾞﾀﾝ穴あけ', 'amount'=>'', 'unitprice'=>64.8),
+		array('name'=>'紙ﾀｸﾞの外すとｵﾘｼﾞﾅﾙ紙ﾀｸﾞの取付', 'amount'=>'', 'unitprice'=>43.2),
+		array('name'=>'布ﾀｸﾞの外す', 'amount'=>'', 'unitprice'=>32.4),
+		array('name'=>'返品費用', 'amount'=>'', 'unitprice'=>64.8),
+	),
+
+	'member_rank' => array(
+		'kbn' => array(
+		    'none' => 0,
+		    'normal' => 1,
+		    'standard' => 2,
+		    'gold' => 3,
+		),
+		'name' => array(
+		    '' => '',
+		    '0' => '未設定',
+		    '1' => 'ノーマル会員',
+		    '2' => 'スタンダード会員',
+		    '3' => 'ゴールド会員',
+		),
+	),
+
+	'send_mail' => array(
+		'from' => 'no-reply@kannihonkai.net',
+		//'from' => 'chenyang@newcon.jp',
+                'from_name' => '環日本海国際貿易有限公司',
+		'reply_to' => 'yiwu@kannihonkai.com',
+		'reply_to_name' => '環日本海国際貿易有限公司',
+		'admin' => 'stock@inabas.net',
+		'admin_name' => 'GTS運営事務局',
+		'subject' => array(
+			'prefix' => '【GTS】',
+		),
+		'send_flg' => array(
+			'kbn' => array(
+				'unsent' => '0',
+				'sent'   => '1',
+				'error'  => '9',
+			),
+		),
+	),
+
+	'order_status' => array(
+		'kbn' => array(
+		    'cancel' => -1,
+			'draft' => 1,
+		    'temporary' => 20,
+		    'buy' => 2,
+		    'search' => 3,
+		    'exchange' => 4,
+		    'backordering' => 5,
+		    'arrival' => 6,
+		    'preparation' => 7,
+		    'finish' => 8,
+		),
+		'name' => array(
+			'' => '',
+		    '-1' => 'キャンセル',
+		    '1' => '作成中',
+		    '20' => '見積依頼',
+		    '2' => '注文確定',
+		    '3' => '手配中（製造中）',
+		    '4' => '交換手配中',
+		    '5' => '入荷待ち（完成）',
+		    '6' => '入荷済み（検査中）',
+		    '7' => '一部配送済み',
+		    '8' => '配送済み',
+		),
+		'0' => array(
+			'kbn' => array(
+			    'cancel' => -1,
+				'draft' => 1,
+			    'buy' => 2,
+			    'search' => 3,
+			    'exchange' => 4,
+			    'backordering' => 5,
+			    'arrival' => 6,
+			    'preparation' => 7,
+			    'finish' => 8,
+			),
+			'name' => array(
+				'' => '',
+			    '-1' => 'キャンセル',
+			    '1' => '作成中',
+			    '2' => '注文確定',
+			    '3' => '手配中',
+			    '4' => '交換手配中',
+			    '5' => '入荷待ち',
+			    '6' => '入荷済み',
+			    '7' => '一部配送済み',
+			    '8' => '配送済み',
+			),
+		),
+		'1' => array(
+			'kbn' => array(
+			    'cancel' => -1,
+				'draft' => 1,
+			    'temporary' => 20,
+			    'buy' => 2,
+			    'search' => 3,
+			    'backordering' => 5,
+			    'arrival' => 6,
+			    'preparation' => 7,
+			    'finish' => 8,
+			),
+			'name' => array(
+				'' => '',
+			    '-1' => 'キャンセル',
+			    '1' => '作成中',
+			    '20' => '見積依頼',
+			    '2' => '注文確定',
+			    '3' => '製造中',
+			    '5' => '完成',
+			    '6' => '検査中',
+			    '7' => '一部配送済み',
+			    '8' => '配送済み',
+			),
+		),
+	),
+
+	'order_header_status_select' => array(
+		'0' => array(
+			'' => array(
+				'' => '',
+			    '1' => '作成中',
+			    '2' => '注文確定',
+			),
+			'1' => array(
+				'' => '',
+			    '1' => '作成中',
+			    '2' => '注文確定',
+			),
+			'2' => array(
+			    '1' => '作成中',
+			    '2' => '注文確定',
+			),
+			'-1' => array(
+			    '-1' => 'キャンセル',
+			),
+			'3' => array(
+			    '3' => '手配中',
+			),
+			'4' => array(
+			    '4' => '交換手配中',
+			),
+			'5' => array(
+			    '5' => '入荷待ち',
+			),
+			'6' => array(
+			    '6' => '入荷済み',
+			),
+			'7' => array(
+			    '7' => '一部配送済み',
+			),
+			'8' => array(
+			    '8' => '配送済み',
+			),
+		),
+		'1' => array( # OEM
+			'' => array(
+				'' => '',
+			    '1' => '作成中',
+			    '20' => '見積依頼',
+			),
+			'1' => array(
+				'' => '',
+			    '1' => '作成中',
+			    '20' => '見積依頼',
+			),
+			'20' => array(
+			    '1' => '作成中',
+			    '20' => '見積依頼',
+			    '2' => '注文確定',
+			),
+			'2' => array(
+			    '1' => '作成中',
+			    '2' => '注文確定',
+			),
+			'-1' => array(
+			    '-1' => 'キャンセル',
+			),
+			'3' => array(
+			    '3' => '製造中',
+			),
+			'5' => array(
+			    '5' => '完成',
+			),
+			'6' => array(
+			    '6' => '検査中',
+			),
+			'7' => array(
+			    '7' => '一部配送済み',
+			),
+			'8' => array(
+			    '8' => '配送済み',
+			),
+		),
+	),
+
+	'order_detail_status_select' => array(
+		'0' => array(
+			'-1' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '手配中',
+			    '4' => '交換手配中',
+			),
+			'' => array(
+			    '' => '',
+			    '3' => '手配中',
+			),
+			'0' => array(
+			    '' => '',
+			    '3' => '手配中',
+			),
+			'1' => array(
+			    '1' => '作成中',
+			),
+			'2' => array(
+			    '-1' => 'キャンセル',
+			    '2' => '注文確定',
+			    '3' => '手配中',
+			),
+			'3' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '手配中',
+			    '4' => '交換手配中',
+			    '5' => '入荷待ち',
+			),
+			'4' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '手配中',
+			    '4' => '交換手配中',
+			    '5' => '入荷待ち',
+			),
+			'5' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '手配中',
+			    '4' => '交換手配中',
+			    '5' => '入荷待ち',
+			    '6' => '入荷済み',
+			),
+			'6' => array(
+			    '5' => '入荷待ち',
+			    '6' => '入荷済み',
+			    '7' => '一部配送済み',
+			),
+			'7' => array(
+			    '6' => '入荷済み',
+			    '7' => '一部配送済み',
+			),
+			'8' => array(
+			    '8' => '配送済み',
+			),
+		),
+		'1' => array(
+			'-1' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '製造中',
+			),
+			'' => array(
+			    '' => '',
+			    '3' => '製造中',
+			),
+			'0' => array(
+			    '' => '',
+			    '3' => '製造中',
+			),
+			'1' => array(
+			    '1' => '作成中',
+			),
+			'20' => array(
+			    '20' => '見積依頼',
+			),
+			'2' => array(
+			    '-1' => 'キャンセル',
+			    '2' => '注文確定',
+			    '3' => '製造中',
+			),
+			'3' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '製造中',
+			    '5' => '完成',
+			),
+			'5' => array(
+			    '-1' => 'キャンセル',
+			    '3' => '製造中',
+			    '5' => '完成',
+			    '6' => '検査中',
+			),
+			'6' => array(
+			    '5' => '完成',
+			    '6' => '検査中',
+			    '7' => '一部配送済み',
+			),
+			'7' => array(
+			    '6' => '検査中',
+			    '7' => '一部配送済み',
+			),
+			'8' => array(
+			    '8' => '配送済み',
+			),
+		),
+	),
+
+	'order_transact_status' => array(
+		'kbn' => array(
+		    'none' => '',
+			'untransact' => 1,
+		),
+		'name' => array(
+		    '' => '',
+		    '1' => '未処理',
+		),
+	),
+
+	'order_list_sort' => array(
+		'kbn' => array(
+		    'order_no' => 1,
+			'order_date_desc' => 2,
+		),
+		'name' => array(
+		    '1' => '注文No',
+		    '2' => '注文日時（降順）',
+		),
+	),
+
+	'transact_status' => array(
+		'kbn' => array(
+		    'none' => '',
+			'untransact' => 1,
+		),
+		'name' => array(
+		    '' => '',
+		    '1' => '未処理',
+		),
+	),
+
+	'order_message_status' => array(
+		'kbn' => array(
+			'none' => '',
+		    'unread' => '0',
+		),
+		'name' => array(
+			'' => '',
+		    '0' => '未読',
+		),
+	),
+
+	'admin_user_list_order' => array(
+		'kbn' => array(
+			'none' => 'id',
+			'id' => '1',
+		),
+		'name' => array(
+		    '1' => 'ユーザID',
+		),
+	),
+
+	'list_order_by' => array(
+		'kbn' => array(
+		    'asc' => '',
+			'desc' => 1,
+		),
+		'name' => array(
+		    '' => '昇順',
+		    '1' => '降順',
+		),
+	),
+
+	# 担当者ごとに、入力できる明細ステータスを制御してる
+	'order_status_update_enable' => array(
+	    'orderer' => array(
+		    '-1', '2', '3', '4', '5', // 注文確定～入荷待ち
+	    ),
+	    'shipper' => array(
+		    '5', '6', '7', '8', // 入荷待ち～配送済み
+	    ),
+	    'oem_orderer' => array(
+		    '-1', '20', '2', '3', '5', // 見積依頼～完成
+	    ),
+	    'oem_shipper' => array(
+		    '5', '6', '7', '8', // 完成～配送済み
+	    ),
+	),
+
+	# 発注担当者だけが、作成中に戻せる
+	'order_status_buy_enable' => array(
+	    '20' => array(
+		    'orderer' => array(
+			    '20', // 見積依頼
+		    ),
+		    'shipper' => array(
+			    '20', // 見積依頼
+		    ),
+		    'oem_orderer' => array(
+			    '1', '20', // 作成中, 見積依頼
+		    ),
+		    'oem_shipper' => array(
+			    '20', // 見積依頼
+		    ),
+		    'default' => array(
+			    '1', '20', // 作成中, 見積依頼
+	    	),
+	    ),
+	    '2' => array(
+		    'orderer' => array(
+			    '1', '2', // 作成中, 注文確定
+		    ),
+		    'shipper' => array(
+			    '2', // 注文確定
+		    ),
+		    'oem_orderer' => array(
+			    '1', '2', // 作成中, 注文確定
+		    ),
+		    'oem_shipper' => array(
+			    '2', // 注文確定
+		    ),
+		    'default' => array(
+			    '1', '2', // 作成中, 注文確定
+	    	),
+	    ),
+	),
+
+	# 入荷待ち（=5）のときに、指定できるステータスを制御
+	'order_status_backordering_enable' => array(
+	    'orderer' => array(
+		    '-1', '3', '4', '5', // キャンセル, 手配中, 交換手配中, 入荷待ち
+	    ),
+	    'shipper' => array(
+		    '5', '6', // 入荷待ち, 入荷済み
+	    ),
+	    'oem_orderer' => array(
+		    '-1', '3', '5', // キャンセル, 製造中, 完成
+	    ),
+	    'oem_shipper' => array(
+		    '5', '6', // 完成, 検査中
+	    ),
+	),
+
+	'order_status_delete_enable' => array(
+		'20', '2', '3', '4', '5', // 注文確定（＋見積依頼）～入荷待ちまでは明細削除可能
+	),
+
+	'member_group' => array(
+		'kbn' => array(
+			'ban' => -1,
+			'temporary' => 0,
+			'web' => 1,
+		    'admin' => 10,
+		    'accountant' => 11,
+		    'orderer' => 12,
+		    'shipper' => 13,
+		    'oem_orderer' => 14,
+		    'oem_shipper' => 15,
+		    'oem_administrator' => 16,
+		),
+		'name' => array(
+		    '-1' => 'アクセス禁止',
+		    '0' => '仮登録',
+		    '1' => '一般ユーザ',
+		    '10' => '管理者',
+		    '11' => '会計担当',
+		    '12' => '発注担当',
+		    '13' => '出荷担当',
+		    '14' => 'OEM注文',
+		    '15' => 'OEM配送',
+		    '16' => 'OEM管理者',
+		),
+	),
+
+	'address_kind' => array(
+		'kbn' => array(
+		    'office' => 0,
+		    'fba' => 1,
+		    'office_ship' => 2,
+		    'fba_ship' => 3,
+	        
+		),
+		
+		'name' => array(
+		    '0' => '事務所',
+		    '1' => 'FBA',
+		    '2' => '事務所（船便）',
+		    '3' => 'FBA（船便）',
+		    
+		),
+	),
+		'address_kind1' => array(
+		'kbn' => array(
+	        ''=> '',
+		    'office' => 0,
+		    'fba' => 1,
+		    'office_ship' => 2,
+		    'fba_ship' => 3,
+	        
+		),
+		
+		'name' => array(
+		    '' => '',
+		    '0' => '事務所',
+		    '1' => 'FBA',
+		    '2' => '事務所（船便）',
+		    '3' => 'FBA（船便）',
+		    
+		),
+	),
+
+	'deposit_input_payers' => array(
+		'9999999' => 'その他',
+	),
+
+	'user_group' => array(
+		'kbn' => array(
+		    'user' => 1,
+		),
+		'name' => array(
+		    '1' => 'ユーザ',
+		),
+	),
+
+	'admin_group' => array(
+		'kbn' => array(
+		    'administrator' => 10,
+		    'accountant' => 11,
+		    'orderer' => 12,
+		    'shipper' => 13,
+		    'oem_orderer' => 14,
+		    'oem_shipper' => 15,
+		    'oem_administrator' => 16,
+		),
+		'name' => array(
+		    '10' => '管理者',
+		    '11' => '会計担当',
+		    '12' => '発注担当',
+		    '13' => '出荷担当',
+		    '14' => 'OEM注文',
+		    '15' => 'OEM配送',
+		    '16' => 'OEM管理者',
+		),
+	),
+
+	'deposit_status' => array(
+		'kbn' => array(
+		    'receipt' => 0,
+		    'pay' => 1,
+		),
+		'name' => array(
+		    '0' => '入金',
+		    '1' => '出金',
+		),
+	),
+
+	'deliver_kbn' => array(
+		'kbn' => array(
+		    'national' => 0,
+		    'foreign' => 1,
+		),
+		'name' => array(
+		    '0' => '国内',
+		    '1' => '海外',
+		),
+	),
+
+	'send_status' => array(
+		'kbn' => array(
+		    'none' => '',
+		),
+		'name' => array(
+		    '0' => '',
+		    '1' => '配送中',
+		    '2' => '配送済み',
+		    '9' => 'トラブル',
+		),
+	),
+
+	'order_message' => array(
+		'kbn' => array(
+		    'unread' => '0',
+		    'readed' => '1',
+		),
+		'name' => array(
+		    '0' => '未読',
+		    '1' => '既読',
+		),
+	),
+
+	'contact_screen' => array(
+		'name' => array(
+		    '' => '',
+		    '注文一覧' => '注文一覧',
+		    '注文シート' => '注文シート',
+		    '残高履歴' => '残高履歴',
+		    '配送先設定' => '配送先設定',
+		    'その他' => 'その他',
+		),
+	),
+
+	'send_mail_flg' => array(
+		'kbn' => array(
+		    'unsend' => 0,
+			'send' => 1,
+		),
+		'name' => array(
+		    '0' => '未送信',
+		    '1' => '送信済み',
+		),
+	),
+
+	'deposit_history_day_status' => array(
+		'kbn' => array(
+		    '10' => 10,
+		    '20' => 20,
+		    '40' => 40,
+		    '100' => 100,
+		),
+		'name' => array(
+		    '10' => '10日',
+		    '20' => '20日',
+		    '40' => '40日',
+		    '100' => '100日',
+		),
+	),
+
+	'special_inspection' => array(
+		'kbn' => array(
+		    'no' => '0',
+		    'yes' => '1',
+		),
+		'name' => array(
+		    '0' => 'しない',
+		    '1' => 'する',
+		),
+	),
+
+	'delivery_option' => array(
+		'kbn' => array(
+		    'standard' => '0',
+		    'together' => '1',
+		    'fba'      => '2',
+		),
+		'0' => array(
+			'name' => array(
+			    '0' => '原則5日',
+			    '1' => 'まとめて配送',
+			    '2' => '原則7日', // FBAのとき
+			),
+		),
+		'1' => array(
+			'name' => array(
+			    '0' => '原則このOEM注文のみ配送',
+			    '1' => '代行等と一緒に配送',
+			),
+		),
+		'delivery_option_array' => array(
+			'standard' => '原則5日',
+			'fba'      => '原則7日',
+			'together' => '原則このOEM注文のみ配送',
+		),
+	),
+
+	'fba_barcode_flg' => array(
+		'kbn' => array(
+		    'no' => '0',
+		    'yes' => '1',
+		),
+		'name' => array(
+		    '0' => 'しない',
+		    '1' => 'する',
+		),
+	),
+
+	'opp_packing_flg' => array(
+		'kbn' => array(
+		    'no' => '0',
+		    'yes' => '1',
+		),
+		'name' => array(
+		    '0' => 'しない',
+		    '1' => 'する',
+		),
+	),
+
+	'order_kbn' => array(
+		'kbn' => array(
+		    'normal' => '0',
+		    'oem' => '1',
+		),
+		'name' => array(
+		    '0' => '通常',
+		    '1' => 'OEM',
+		),
+	),
+
+	'temp_settle_flg' => array(
+		'kbn' => array(
+		    'no' => '0',
+		    'yes' => '1',
+		),
+		'name' => array(
+		    '0' => '未確定',
+		    '1' => '仮確定',
+		),
+	),
+
+	# 注文区分ごとのラベル
+	'order_sheet_label' => array(
+		'0' => array(
+			'name' => array(
+				'title' => '注文シート',
+				'url' => '仕入先URL',
+				'url1' => '仕入先URL1',
+				'url2' => '仕入先URL2',
+				'url3' => '仕入先URL3',
+				'order_date' => '発注日',
+				'receive_date' => '到着予定日',
+			),
+		),
+		'1' => array(
+			'name' => array(
+				'title' => '注文シート（OEM）',
+				'url' => 'OEMURL',
+				'url1' => 'OEMURL1',
+				'url2' => 'OEMURL2',
+				'url3' => 'OEMURL3',
+				'order_date' => '製造依頼日',
+				'receive_date' => '納期予定日',
+			),
+		),
+	),
+
+	# 注文情報入力の区分
+	'order_info_status' => array(
+		'kbn' => array(
+		    'request_state' => 0,       # ご依頼状況
+		    'request_state_admin' => 1, # 〃管理者メモ
+		    'reference_url' => 2,       # 参考URL
+		    'reference_url_admin' => 3, # 〃管理者メモ
+		    'budget' => 4,              # 制約条件
+		    'budget_admin' => 5,        # 〃管理者メモ
+		    'other' => 6,               # その他サービスのご希望
+		    'other_admin' => 7,         # 〃管理者メモ
+		    'MAX' => 8,
+		    'attach' => 9,              # アップロードファイル
+		),
+		'name' => array(
+			'0' => 'ご依頼状況',
+			'1' => 'ご依頼状況 管理者メモ',
+			'2' => '参考URL',
+			'3' => '参考URL 管理者メモ',
+			'4' => '制約条件：予算・原価の限度額',
+			'5' => '制約条件：予算・原価の限度額 管理者メモ',
+			'6' => 'その他サービス（検品含む）のご希望',
+			'7' => 'その他サービス（検品含む）のご希望 管理者メモ',
+			'9' => 'ロゴ・タグ情報',
+		),
+		'relation' => array(
+			'0' => '0',
+			'1' => '0',
+			'2' => '2',
+			'3' => '2',
+			'4' => '4',
+			'5' => '4',
+			'6' => '6',
+			'7' => '6',
+		),
+	),
+
+	'order_info_attach' => array(
+		'mimetype' => array(
+			'ai' => array(
+				'application/pdf',
+				'application/postscript'
+			),
+			'doc' => array(
+				'application/msword',
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			),
+			'download' => array(
+				'application/pdf',
+				'application/postscript',
+				'application/msword',
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			),
+		),
+		'ext_whitelist' => array(
+			'img', 'jpg', 'jpeg', 'gif', 'png', 'ai', 'pdf', 'ps', 'doc', 'docx',
+		),
+		'mime_whitelist' => array(
+			'image/png',
+			'image/x-png',
+			'image/jpg',
+			'image/gif',
+			'image/jpeg',
+			'application/pdf',
+			'application/postscript',
+			'application/msword',
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		),
+		'upload_user' => array(
+			'kbn' => array(
+				'admin' => 0,
+				'user' => 1,
+			),
+		),
+	),
+
+	'order_sheet_upload' => array(
+		'upload_option' => array(
+			'kbn' => array(
+			    'add' => '0',
+			    'overwrite' => '1',
+			),
+			'name' => array(
+				'0' => '明細追加',
+				'1' => '明細上書き',
+			),
+		),
+
+		'image_mimetype' => array(
+			'image/png'   => 'png',
+			'image/x-png' => 'png',
+			'image/jpg'   => 'jpg',
+			'image/jpeg'  => 'jpg',
+			'image/gif'   => 'gif',
+		),
+		'upload_sheet_name' => '出品テンプレート',
+		'excel_row_start' => 4,
+		'excel_row_max'   => 65534,
+		'excel_column_max' => 32,
+		'excel_upload_exclude' => array(
+			'price' => 1,
+			'standard_price_points' => 2,
+			'product_id' => 4,
+			'product_id_type' => 5,
+			'condition_type' => 6,
+			'condition_note' => 7,
+			'ASIN_hint' => 8,
+			'title' => 9,
+			'operation_type' => 10,
+			'sale_price' => 11,
+			'sale_price_points' => 12,
+			'sale_start_date' => 13,
+			'sale_end_date' => 14,
+			'leadtime_to_ship' => 15,
+			'launch_date' => 16,
+			'is_giftwrap_available' => 17,
+			'is_gift_message_available' => 18,
+			'fulfillment_center_id' => 19,
+			'optional_payment_type_exclusion' => 20,
+			'offer_image2' => 23,
+			'offer_image3' => 24,
+			'offer_image4' => 25,
+			'offer_image5' => 26,
+		),
+		'excel_column_name' => array(
+			'sku' => 0,
+			'price' => 1,
+			'standard_price_points' => 2,
+			'quantity' => 3,
+			'product_id' => 4,
+			'product_id_type' => 5,
+			'condition_type' => 6,
+			'condition_note' => 7,
+			'ASIN_hint' => 8,
+			'title' => 9,
+			'operation_type' => 10,
+			'sale_price' => 11,
+			'sale_price_points' => 12,
+			'sale_start_date' => 13,
+			'sale_end_date' => 14,
+			'leadtime_to_ship' => 15,
+			'launch_date' => 16,
+			'is_giftwrap_available' => 17,
+			'is_gift_message_available' => 18,
+			'fulfillment_center_id' => 19,
+			'optional_payment_type_exclusion' => 20,
+			'main_offer_image' => 21,
+			'offer_image1' => 22,
+			'offer_image2' => 23,
+			'offer_image3' => 24,
+			'offer_image4' => 25,
+			'offer_image5' => 26,
+			'URL1' => 27,
+			'URL2' => 28,
+			'URL3' => 29,
+			'valiation' => 30,
+			'demand' => 31,
+			'china_price' => 32,
+		),
+		'excel_validation_array' => array(
+			'sku' => 0,
+			'quantity' => 1,
+			'main_offer_image' => 2,
+			'offer_image1' => 3,
+			'URL1' => 4,
+			'URL2' => 5,
+			'URL3' => 6,
+			'valiation' => 7,
+			'demand' => 8,
+			'china_price' => 9,
+		),
+		'excel_varsion' => array(
+			'kbn' => array(
+				'xls' => 'Excel5',
+				'xlsx' => 'Excel2007',
+				'xlsm' => 'Excel2007',
+			),
+		),
+		'mimetype_by_ext' => array(
+			'kbn' => array(
+				'xls' => 'application/vnd.ms-excel',
+				'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'xlsm' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			),
+		),
+		'mimetype' => array(
+			'download' => array(
+				'application/vnd.ms-excel',
+				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'application/vnd.ms-office',
+			),
+		),
+		'ext_whitelist' => array(
+			'xls', 'xlsx', 'xlsm',
+		),
+		'mime_whitelist' => array(
+			'application/vnd.ms-excel',
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.ms-office',
+		),
+	),
+
+	'balance_adjust' => array(
+		'payer_name' => 'PAYPAL',
+		'payer_name_adjust' => '残高調整',
+		'reason' => 'PAYPAL手数料調整',
+	),
+);

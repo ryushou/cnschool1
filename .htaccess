@@ -1,0 +1,20 @@
+<IfModule mod_rewrite.c>
+ RewriteEngine on
+ RewriteBase /
+ RewriteCond %{REQUEST_FILENAME} !-f
+ RewriteCond %{REQUEST_FILENAME} !-d
+ # deal with php5-cgi first
+ <IfModule mod_fcgid.c>
+  RewriteRule ^(.*)$ index.php?/$1 [QSA,L]
+ </IfModule>
+ <IfModule !mod_fcgid.c>
+  # for normal Apache installations
+  <IfModule mod_php5.c>
+   RewriteRule ^(.*)$ index.php/$1 [L]
+  </IfModule>
+  # for Apache FGCI installations
+  <IfModule !mod_php5.c>
+   RewriteRule ^(.*)$ index.php?/$1 [QSA,L]
+  </IfModule>
+ </IfModule>
+</IfModule>
