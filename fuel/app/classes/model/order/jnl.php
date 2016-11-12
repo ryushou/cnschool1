@@ -162,6 +162,13 @@
 				$order_status_to   = Config::get('constant.order_status.kbn.preparation');
 				$temporary_flg     = true;
 				$is_oem_flg        = true;
+				$dispatchusers = DB::select('user_id')->from('users_dispatch')->where('my_id', '=', Utility::get_user_id())->execute()->as_array();
+				if(count($dispatchusers)>0){
+					$select = $select->and_where('order_detail.order_id', 'in', $dispatchusers);
+				}else{
+					$dispatchusers = DB::select('user_id')->from('users_dispatch')->where('which_type', '=', 'oem')->execute()->as_array();
+					$select = $select->and_where('order_detail.order_id', 'not in', $dispatchusers);
+				}
 			}
 			else { // 管理者：注文確定～出荷準備中
 				$order_status_from = Config::get('constant.order_status.kbn.buy');
