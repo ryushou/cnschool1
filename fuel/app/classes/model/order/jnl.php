@@ -17,7 +17,6 @@
 			'commission',
 			'national_delivery_fee',
 			'international_delivery_fee',
-			'plana_planb_fee',
 			'sum_tax',
 			'sum_send_directly_price',
 			'special_inspection_flg',
@@ -100,8 +99,6 @@
 			$is_search_message    = !Utility::is_empty($search['message']);
 			$is_search_untransact = !Utility::is_empty($search['untransact']);
             $is_search_fba_flg    = !Utility::is_empty($search['fba_flg']);
-            $is_which_user_id_flg    = !Utility::is_empty($search['which_user_id']);
-            
 			$select = DB::select('order_detail.order_id')
 						->from('order_detail');
 
@@ -125,10 +122,6 @@
 		    if($is_search_fba_flg ){
 		    	$select = $select->and_where('order_jnl.send_fba_flg', '=', $search['fba_flg']);
 		    }
-		    if($is_which_user_id_flg){
-		    	$dispatchusers = DB::select('user_id')->from('users_dispatch')->where('my_id', '=', $search['which_user_id'])->execute()->as_array();
-				$select = $select->and_where('order_detail.user_id', 'in', $dispatchusers);
-		    }
 			$detail_status_query = 'CASE WHEN order_detail.detail_status = ' . Config::get('constant.order_status.kbn.temporary')
 									. ' THEN ' . (Config::get('constant.order_status.kbn.draft')+0.5) . ' ELSE order_detail.detail_status END';
 			$detail_search_status = $search['status'] == Config::get('constant.order_status.kbn.temporary') ? Config::get('constant.order_status.kbn.draft')+0.5 : $search['status'];
@@ -145,8 +138,6 @@
 				$order_status_to   = Config::get('constant.order_status.kbn.arrival');
 				$temporary_flg     = false;
 				$is_oem_flg        = false;
-				$dispatchusers = DB::select('user_id')->from('users_dispatch')->where('my_id', '=', Utility::get_user_id())->execute()->as_array();
-				$select = $select->and_where('order_detail.user_id', 'in', $dispatchusers);
 			}
 			else if($is_oem_orderer) { // OEM発注担当：見積依頼+完成まで
 				$order_status_from = Config::get('constant.order_status.kbn.buy');
@@ -171,13 +162,6 @@
 				$order_status_to   = Config::get('constant.order_status.kbn.preparation');
 				$temporary_flg     = true;
 				$is_oem_flg        = true;
-				$dispatchusers = DB::select('user_id')->from('users_dispatch')->where('my_id', '=', Utility::get_user_id())->execute()->as_array();
-				if(count($dispatchusers)>0){
-					$select = $select->and_where('order_detail.order_id', 'in', $dispatchusers);
-				}else{
-					$dispatchusers = DB::select('user_id')->from('users_dispatch')->where('which_type', '=', 'oem')->execute()->as_array();
-					$select = $select->and_where('order_detail.order_id', 'not in', $dispatchusers);
-				}
 			}
 			else { // 管理者：注文確定～出荷準備中
 				$order_status_from = Config::get('constant.order_status.kbn.buy');
@@ -380,7 +364,7 @@
 			$result  = \DB::query(
 							'SELECT A.user_id, SUM(A.amount - ifnull(B.amount, 0) - ifnull(C.amount, 0)) AS amount ' .
 							'FROM ( ' .
-							'  SELECT user_id, SUM(sum_price - sum_tax - product_price - commission - national_delivery_fee - international_delivery_fee - sum_send_directly_price - option_price - plana_planb_fee) AS amount ' .
+							'  SELECT user_id, SUM(sum_price - sum_tax - product_price - commission - national_delivery_fee - international_delivery_fee - sum_send_directly_price - option_price) AS amount ' .
 							'  FROM order_jnl WHERE order_status = ' . Config::get('constant.order_status.kbn.finish') . ' ' .
 							'  GROUP BY user_id ' .
 							') A ' .

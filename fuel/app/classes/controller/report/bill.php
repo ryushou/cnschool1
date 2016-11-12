@@ -172,13 +172,6 @@ class Controller_Report_Bill extends Controller {
 				'price' => number_format($order->option_price),
 			);
 		}
-		
-		if($order->plana_planb_fee > 0) {
-			$details[] = array (
-				'product_name' => 'A/Bプラン',
-				'price' => number_format($order->plana_planb_fee),
-			);
-		}
 
 		if($order->payer_commission > 0) {
 			if($order->payer_name!='PAYPAL') {			
@@ -188,7 +181,6 @@ class Controller_Report_Bill extends Controller {
 										- $order->commission
 										- $order->national_delivery_fee
 										- $order->international_delivery_fee
-										- $order->plana_planb_fee
 										- $order->sum_send_directly_price
 										- $order->option_price;
 				if($payer_commission > 0) {
@@ -368,13 +360,6 @@ class Controller_Report_Bill extends Controller {
 				'price' => number_format($order->option_price),
 			);
 		}
-		
-		if($order->plana_planb_fee > 0) {
-			$details[] = array (
-				'product_name' => 'A/Bプラン',
-				'price' => number_format($order->plana_planb_fee),
-			);
-		}
 
 		if($order->payer_commission > 0) {			
 			if($order->payer_name!='PAYPAL') {					
@@ -384,7 +369,6 @@ class Controller_Report_Bill extends Controller {
 										- $order->commission
 										- $order->national_delivery_fee
 										- $order->international_delivery_fee
-										- $order->plana_planb_fee
 										- $order->sum_send_directly_price
 										- $order->option_price;
 				

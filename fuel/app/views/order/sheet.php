@@ -346,7 +346,6 @@
 							<td>手数料</td>
 							<td>内送料</td>
 							<td>国際送料</td>
-							<td>A/Bプラン</td>
 							<td>オプション</td>
 							<td>消費税</td>
 						</tr>
@@ -357,7 +356,6 @@
 							<td class="text-right" id="commission"><?= number_format($order->commission) ?></td>
 							<td class="text-right" id="national_delivery_fee"><?= number_format($order->national_delivery_fee) ?></td>
 							<td class="text-right" id="international_delivery_fee"><?= number_format($order->international_delivery_fee) ?></td>
-							<td class="text-right" id="plana_planb_fee"><?= number_format($order->plana_planb_fee) ?></td>
 							<td class="text-right" id="option_price"><?= number_format($order->option_price) ?></td>
 							<td class="text-right" id="sum_tax"><?= number_format($order->sum_tax) ?></td>
 						</tr>
@@ -412,18 +410,6 @@
 
 			<div class="order-sheet-form-div order-sheet-option">
 				注文オプション：<br/>
-				<div class="form-control-box" style="padding-left:0">
-					<label for="aplan_bplan_flg_aplan">&nbsp;
-						<div class="form-control-box">
-							<?= Form::radio('aplan_bplan_flg', Config::get('constant.aplan_bplan_flg.kbn.aplan'), $order->plana_planb_flg == Config::get('constant.aplan_bplan_flg.kbn.aplan'), array('id' => 'aplan_bplan_flg_aplan')) ?>
-						</div>
-					</label>
-					<label for="aplan_bplan_flg_bplan">&nbsp;
-						<div class="form-control-box">
-							<?= Form::radio('aplan_bplan_flg', Config::get('constant.aplan_bplan_flg.kbn.bplan'), $order->plana_planb_flg == Config::get('constant.aplan_bplan_flg.kbn.bplan'), array('id' => 'aplan_bplan_flg_bplan')) ?>
-						</div>
-					</label>
-				</div>
 				<div class="form-control-box">
 					<div>
 						<label>
@@ -483,7 +469,7 @@
 					<td class="order-sheet-table-head-date"><?= Utility::get_constant_name2('order_sheet_label', $order->order_kbn, 'order_date') ?></td>
 					<td class="order-sheet-table-head-status">商品ステータス</td>
 					<td class="order-sheet-table-head-textarea" rowspan="2">管理者メッセージ</td>
-                    <td class="order-sheet-table-head-number" rowspan="2">A/Bプラン</td>
+                    
                     
                     
 					<td class="order-sheet-table-head-option" rowspan="2">オプション1-3<br/>（項目・数量・単価）</td>
@@ -691,11 +677,7 @@
 							<?= Form::textarea('admin_message[]', $dtl->admin_message, array('class'=>'order-sheet-form-textarea form-control', 'idx'=>$idx, 'placeholder'=>'管理者メッセージ')); ?>
 						</div>
 					</td>				
-					<td>
-						<div class="order-sheet-form-div">
-							<?= Form::input('sub_plana_planb_fee[]', $dtl->sub_plana_planb_fee, array('class'=>'order-sheet-form-number form-control', 'disabled'=>'')); ?>
-						</div>
-					</td>
+					
 					<td>
 						<div class="order-sheet-form-div">
 							<?php 
