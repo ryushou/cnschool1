@@ -17,6 +17,7 @@
 			'commission',
 			'national_delivery_fee',
 			'international_delivery_fee',
+			'plana_planb_fee',
 			'sum_tax',
 			'sum_send_directly_price',
 			'special_inspection_flg',

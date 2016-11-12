@@ -390,6 +390,7 @@ class Controller_Order_Sheet extends Controller_Template {
 			$sum_fba_barcode_price      = 0;
 			$sum_opp_packing_price      = 0;
 			$sum_other_option_price     = 0;
+			$sum_aplan_bplan_price      = 0;
 
 			$update_detail_entry = array();
 			$delete_detail_entry = array();
@@ -481,6 +482,13 @@ class Controller_Order_Sheet extends Controller_Template {
 				if($order_status == Config::get('constant.order_status.kbn.buy')
 					|| $order_status == Config::get('constant.order_status.kbn.temporary')) {
 					$detail_entry->real_amount = $detail_entry->request_amount;
+				}
+				
+				if($detail_entry->real_amount > 0){
+					//if($order->
+					$sum_aplan_bplan_price = $sum_aplan_bplan_price + $detail_entry->real_amount * Config::get('constant.unit_fba_barcode_price')
+				}else{
+					$sum_aplan_bplan_price = $sum_aplan_bplan_price + $detail_entry->request_amount * Config::get('constant.unit_fba_barcode_price')
 				}
 
 				$sum_detail_amount += $detail_entry->request_amount;
